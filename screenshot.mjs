@@ -38,8 +38,15 @@ try {
   browser = await chromium.launch({ channel: 'chrome' });
   console.log('Browser: Google Chrome');
 } catch {
-  browser = await chromium.launch();
-  console.log('Browser: bundled Chromium (Chrome not found)');
+  try {
+    browser = await chromium.launch();
+    console.log('Browser: bundled Chromium (Chrome not found)');
+  } catch {
+    // Fallback for hosts where Playwright doesn't ship a Chromium binary
+    // (e.g. Ubuntu 26.04 ARM64). Documented in skill-style-guide.
+    browser = await chromium.launch({ executablePath: '/snap/bin/chromium' });
+    console.log('Browser: system Chromium (/snap/bin/chromium)');
+  }
 }
 
 try {

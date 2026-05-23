@@ -1,1511 +1,1286 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CALM — Common Architecture Language Model</title>
-<meta name="description" content="An architect-to-architect primer on the FINOS Common Architecture Language Model (CALM): concepts, install, hands-on tutorial, glossary.">
-<script>
-  // Set theme before first paint to avoid FOUC.
-  (function () {
-    try {
-      var saved = localStorage.getItem('calm-theme');
-      var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-      var theme = saved || (prefersLight ? 'light' : 'dark');
-      if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
-    } catch (e) {}
-  })();
-</script>
-<style>
-  :root {
-    color-scheme: dark;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CALM — Common Architecture Language Model</title>
+  <meta name="description" content="An architect-to-architect primer on the FINOS Common Architecture Language Model (CALM): concepts, install, hands-on tutorial, glossary.">
 
-    --bg: #0f1419;
-    --panel: #1a2028;
-    --panel-2: #232b35;
-    --panel-3: #2d3744;
-    --border: #2a3340;
-    --border-strong: #3a4452;
-    --text: #e8ebee;
-    --text-mid: #aeb6c0;
-    --text-muted: #7c8693;
-    --text-dim: #5a6573;
-    --accent: #4dabf7;
-    --accent-soft: rgba(77, 171, 247, 0.12);
-    --accent-line: rgba(77, 171, 247, 0.32);
-    --success: #51cf66;
-    --success-soft: rgba(81, 207, 102, 0.10);
-    --warning: #ffd43b;
-    --warning-soft: rgba(255, 212, 59, 0.10);
-    --danger: #ff6b6b;
-    --danger-soft: rgba(255, 107, 107, 0.10);
-    --code-bg: #0a0e12;
-    --code-border: #1f2731;
-    --code-head-bg: rgba(0, 0, 0, 0.18);
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    --nav-bg: rgba(15, 20, 25, 0.86);
-    --grid-color: rgba(255, 255, 255, 0.014);
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Sans+Mono&display=swap");
 
-    --syntax-text:     #c8d2dc;
-    --syntax-keyword:  #c8acff;
-    --syntax-string:   #b8d68c;
-    --syntax-number:   #ffb86c;
-    --syntax-function: #ffb86c;
+    /* ------------------------------------------------------------------
+       Design tokens
+       ------------------------------------------------------------------ */
+    :root {
+      --bg: #FAFAFA;
+      --surface: #FFFFFF;
+      --text: #0A0A0A;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --border-strong: #D1D5DB;
 
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, "Liberation Mono", monospace;
+      --accent: #2563EB;
+      --accent-hover: color-mix(in srgb, var(--accent) 88%, black);
+      --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
 
-    --maxw: 1100px;
-    --maxw-narrow: 880px;
-    --gutter: clamp(16px, 4vw, 32px);
-  }
+      /* Semantic state colours — used only where content conveys genuine state
+         (PASS/FAIL rows, control bands, drift forensic badges). Never used for
+         CTAs, headings, or brand voice. */
+      --state-ok: #16A34A;
+      --state-ok-soft: color-mix(in srgb, var(--state-ok) 12%, var(--bg));
+      --state-warn: #CA8A04;
+      --state-warn-soft: color-mix(in srgb, var(--state-warn) 14%, var(--bg));
+      --state-bad: #DC2626;
+      --state-bad-soft: color-mix(in srgb, var(--state-bad) 12%, var(--bg));
 
-  [data-theme="light"] {
-    color-scheme: light;
+      /* Categorical (data-viz) palette — chart series only. */
+      --cat-1: #DC2626;
+      --cat-2: #EA580C;
+      --cat-3: #CA8A04;
+      --cat-4: #16A34A;
+      --cat-5: #2563EB;
+      --cat-6: #4F46E5;
+      --cat-7: #7C3AED;
 
-    --bg: #f7f7f5;
-    --panel: #ffffff;
-    --panel-2: #f3f4f6;
-    --panel-3: #e9ecef;
-    --border: #e5e7eb;
-    --border-strong: #d1d5db;
-    --text: #0a0a0a;
-    --text-mid: #4b5563;
-    --text-muted: #6b7280;
-    --text-dim: #9ca3af;
-    --accent: #1c7ed6;
-    --accent-soft: rgba(28, 126, 214, 0.10);
-    --accent-line: rgba(28, 126, 214, 0.34);
-    --success: #2f9e44;
-    --success-soft: rgba(47, 158, 68, 0.10);
-    --warning: #d97706;
-    --warning-soft: rgba(217, 119, 6, 0.12);
-    --danger: #c92a2a;
-    --danger-soft: rgba(201, 42, 42, 0.10);
-    --code-bg: #f8f9fa;
-    --code-border: #e9ecef;
-    --code-head-bg: rgba(0, 0, 0, 0.04);
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 48px;
+      --space-8: 64px;
+      --space-9: 96px;
 
-    --nav-bg: rgba(247, 247, 245, 0.88);
-    --grid-color: rgba(0, 0, 0, 0.022);
+      --font-sans: "Noto Sans", -apple-system, BlinkMacSystemFont, "Inter", "Geist", "Segoe UI", Roboto, sans-serif;
+      --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --fs-body: 18px;
+      --fs-mono: 14px;
+      --fs-small: 14px;
+      --fs-h1: clamp(2.5rem, 1.8rem + 3vw, 4rem);
+      --fs-h2: clamp(1.625rem, 1.2rem + 1.6vw, 2.375rem);
+      --fs-h3: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+      --leading-body: 1.65;
+      --leading-tight: 1.15;
+      --tracking-tight: -0.022em;
 
-    --syntax-text:     #1f2937;
-    --syntax-keyword:  #6b21a8;
-    --syntax-string:   #15803d;
-    --syntax-number:   #b45309;
-    --syntax-function: #c2410c;
-  }
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.04);
+      --shadow: 0 1px 3px rgba(10, 10, 10, 0.06), 0 1px 2px rgba(10, 10, 10, 0.04);
+      --max-width: 1180px;
+      --max-prose: 68ch;
+      --transition: 180ms ease;
+    }
 
-  /* SVG palette remap — lets inline diagrams adapt to the active theme
-     without rewriting the SVG markup. Matches the dark-theme hex values
-     used in this document and rewires them to CSS variables. */
-  svg [fill="#0f1419"]   { fill: var(--bg); }
-  svg [fill="#1a2028"]   { fill: var(--panel); }
-  svg [fill="#232b35"]   { fill: var(--panel-2); }
-  svg [fill="#5a6573"]   { fill: var(--text-dim); }
-  svg [fill="#7c8693"]   { fill: var(--text-muted); }
-  svg [fill="#aeb6c0"]   { fill: var(--text-mid); }
-  svg [fill="#e8ebee"]   { fill: var(--text); }
-  svg [fill="#4dabf7"]   { fill: var(--accent); }
-  svg [fill="#ffd43b"]   { fill: var(--warning); }
-  svg [fill="#51cf66"]   { fill: var(--success); }
-  svg [fill="#ff6b6b"]   { fill: var(--danger); }
-  svg [stroke="#2a3340"] { stroke: var(--border); }
-  svg [stroke="#3a4452"] { stroke: var(--border-strong); }
-  svg [stroke="#4dabf7"] { stroke: var(--accent); }
-  svg [stroke="#ffd43b"] { stroke: var(--warning); }
-  svg [stroke="#51cf66"] { stroke: var(--success); }
-  svg [stroke="#ff6b6b"] { stroke: var(--danger); }
-  svg [stroke="#5a6573"] { stroke: var(--text-dim); }
+    [data-theme="dark"] {
+      --bg: #0B0B0C;
+      --surface: #161618;
+      --text: #F5F5F5;
+      --text-muted: #9CA3AF;
+      --border: #27272A;
+      --border-strong: #3F3F46;
+      --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--bg));
+      --state-ok: #4ADE80;
+      --state-ok-soft: color-mix(in srgb, var(--state-ok) 18%, var(--bg));
+      --state-warn: #FACC15;
+      --state-warn-soft: color-mix(in srgb, var(--state-warn) 18%, var(--bg));
+      --state-bad: #F87171;
+      --state-bad-soft: color-mix(in srgb, var(--state-bad) 18%, var(--bg));
+      --cat-1: #F87171;
+      --cat-2: #FB923C;
+      --cat-3: #FACC15;
+      --cat-4: #4ADE80;
+      --cat-5: #60A5FA;
+      --cat-6: #818CF8;
+      --cat-7: #A78BFA;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
 
-  *,
-  *::before,
-  *::after { box-sizing: border-box; }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 18px;
-    line-height: 1.65;
-    font-feature-settings: "ss01", "cv11";
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Atmosphere: subtle grid texture and a thin accent stripe */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse at top, black 0%, transparent 75%);
-  }
-
-  .top-stripe {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent 0%, var(--accent) 18%, var(--accent) 82%, transparent 100%);
-    z-index: 50;
-  }
-
-  a {
-    color: var(--accent);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 160ms ease, color 160ms ease;
-  }
-  a:hover { border-bottom-color: var(--accent); }
-  a:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-
-  /* ---------- Navigation ---------- */
-  .nav {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: var(--nav-bg);
-    backdrop-filter: saturate(160%) blur(10px);
-    -webkit-backdrop-filter: saturate(160%) blur(10px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-inner {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 14px var(--gutter);
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--text);
-    border-bottom: none;
-    flex-shrink: 0;
-  }
-  .brand-mark {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-  .brand-text {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-  }
-  .brand-sub {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.06em;
-    margin-left: 4px;
-    padding-left: 10px;
-    border-left: 1px solid var(--border);
-  }
-  .nav-links {
-    display: flex;
-    gap: 6px;
-    list-style: none;
-    padding: 0;
-    margin: 0 0 0 auto;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .nav-links::-webkit-scrollbar { display: none; }
-  .nav-links a {
-    display: inline-block;
-    padding: 6px 10px;
-    font-size: 13px;
-    color: var(--text-mid);
-    white-space: nowrap;
-    border-radius: 4px;
-    border-bottom: none;
-    transition: background 140ms ease, color 140ms ease;
-  }
-  .nav-links a:hover {
-    color: var(--text);
-    background: var(--panel-2);
-  }
-  .nav-links a.active {
-    color: var(--accent);
-    background: var(--accent-soft);
-  }
-
-  /* ---------- Left sidebar TOC ---------- */
-  .toc { display: none; }
-
-  .toc-inner { padding: 0 22px; }
-
-  .toc-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 14px 12px;
-  }
-  .toc-eyebrow::before {
-    content: "";
-    width: 14px;
-    height: 1px;
-    background: var(--accent);
-  }
-
-  .toc-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    position: relative;
-  }
-  .toc-list::before {
-    content: "";
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: 0;
-    width: 1px;
-    background: var(--border);
-  }
-  .toc-list a {
-    display: grid;
-    grid-template-columns: 28px 1fr;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    font-size: 14px;
-    color: var(--text-mid);
-    border-bottom: none;
-    border-left: 2px solid transparent;
-    margin-left: -1px;
-    transition: color 140ms ease, background 140ms ease, border-color 140ms ease;
-  }
-  .toc-list a:hover {
-    color: var(--text);
-    background: var(--panel-2);
-    border-bottom: none;
-  }
-  .toc-list a.active {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-left-color: var(--accent);
-  }
-  .toc-num {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.06em;
-  }
-  .toc-list a:hover .toc-num,
-  .toc-list a.active .toc-num { color: var(--accent); }
-
-  .toc-divider {
-    border: 0;
-    border-top: 1px solid var(--border);
-    margin: 22px 12px;
-  }
-  .toc-foot {
-    padding: 0 12px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-    line-height: 1.6;
-  }
-  .toc-foot .toc-foot-label {
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-    display: block;
-  }
-  .toc-foot a {
-    color: var(--text-mid);
-    border-bottom: 1px solid transparent;
-    display: inline-block;
-  }
-  .toc-foot a:hover { color: var(--accent); border-bottom-color: var(--accent-line); }
-
-  /* ---------- Theme toggle ---------- */
-  .theme-toggle {
-    flex-shrink: 0;
-    margin-left: 4px;
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-mid);
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 0;
-    transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
-  }
-  .theme-toggle:hover {
-    color: var(--accent);
-    border-color: var(--accent-line);
-    background: var(--accent-soft);
-  }
-  .theme-toggle:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-  .theme-toggle svg { width: 16px; height: 16px; display: block; }
-  .theme-toggle .t-moon { display: none; }
-  [data-theme="light"] .theme-toggle .t-sun { display: none; }
-  [data-theme="light"] .theme-toggle .t-moon { display: block; }
-
-  /* ---------- Layout helpers ---------- */
-  main {
-    position: relative;
-    z-index: 1;
-  }
-  .container {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 0 var(--gutter);
-  }
-  .container-narrow {
-    max-width: var(--maxw-narrow);
-    margin: 0 auto;
-    padding: 0 var(--gutter);
-  }
-  section { scroll-margin-top: 72px; }
-
-  .section-pad {
-    padding-top: clamp(72px, 10vw, 112px);
-    padding-bottom: clamp(48px, 8vw, 80px);
-  }
-  .section-divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 0;
-    max-width: var(--maxw);
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .section-marker {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    color: var(--accent);
-    text-transform: uppercase;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-  .section-marker::before {
-    content: "";
-    width: 28px;
-    height: 1px;
-    background: var(--accent);
-  }
-  .section-title {
-    font-size: clamp(28px, 4.4vw, 44px);
-    line-height: 1.12;
-    letter-spacing: -0.022em;
-    font-weight: 700;
-    margin: 0 0 16px 0;
-    color: var(--text);
-  }
-  .section-lead {
-    font-size: clamp(17px, 2vw, 19px);
-    color: var(--text-mid);
-    max-width: 720px;
-    margin: 0 0 40px 0;
-    line-height: 1.6;
-  }
-  h3 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.008em;
-    margin: 32px 0 10px 0;
-    color: var(--text);
-  }
-  p {
-    margin: 0 0 16px 0;
-    color: var(--text-mid);
-  }
-  p strong { color: var(--text); font-weight: 600; }
-
-  /* ---------- Hero ---------- */
-  .hero {
-    position: relative;
-    padding-top: clamp(56px, 10vw, 104px);
-    padding-bottom: clamp(56px, 10vw, 88px);
-    overflow: hidden;
-  }
-  .hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), transparent);
-  }
-  .hero-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .hero-eyebrow .dot {
-    width: 6px; height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px var(--accent-soft);
-  }
-  .hero h1 {
-    font-size: clamp(48px, 9.5vw, 112px);
-    line-height: 0.95;
-    letter-spacing: -0.045em;
-    margin: 0 0 24px 0;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .hero h1 .accent {
-    color: var(--accent);
-    font-style: normal;
-  }
-  .hero-tagline {
-    font-size: clamp(18px, 2.4vw, 24px);
-    line-height: 1.45;
-    color: var(--text-mid);
-    max-width: 680px;
-    margin: 0 0 48px 0;
-  }
-  .hero-tagline em {
-    color: var(--text);
-    font-style: normal;
-    font-weight: 600;
-  }
-  .badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 0;
-  }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    border: 1px solid var(--border-strong);
-    background: var(--panel);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.04em;
-    color: var(--text-mid);
-    border-radius: 4px;
-  }
-  .badge .badge-key {
-    color: var(--text-dim);
-    text-transform: uppercase;
-    font-size: 11px;
-  }
-  .badge .badge-val {
-    color: var(--text);
-    font-weight: 700;
-  }
-  .badge .swatch {
-    width: 6px; height: 6px; border-radius: 50%;
-  }
-  .badge .swatch.b1 { background: var(--accent); }
-  .badge .swatch.b2 { background: var(--success); }
-  .badge .swatch.b3 { background: var(--warning); }
-  .badge .swatch.b4 { background: #d0bcff; }
-
-  /* ---------- Diagrams ---------- */
-  .diagram {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 28px;
-    margin: 28px 0;
-    overflow: hidden;
-  }
-  .diagram-caption {
-    margin-top: 14px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    text-align: center;
-    letter-spacing: 0.04em;
-  }
-  .diagram svg {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-  .diagram-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  /* ---------- Cards / Concept grid ---------- */
-  .grid {
-    display: grid;
-    gap: 16px;
-  }
-  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 24px;
-    position: relative;
-    transition: border-color 160ms ease, transform 160ms ease;
-  }
-  .card:hover {
-    border-color: var(--border-strong);
-  }
-  .card-tag {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--accent-soft);
-    padding: 3px 8px;
-    border-radius: 3px;
-    margin-bottom: 12px;
-  }
-  .card h3 {
-    margin: 0 0 8px 0;
-    font-size: 17px;
-  }
-  .card p {
-    margin: 0;
-    color: var(--text-mid);
-    font-size: 15px;
-    line-height: 1.55;
-  }
-  .card .field-list {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0 0 0;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-  .card .field-list li {
-    padding: 3px 0;
-    border-bottom: 1px dashed var(--border);
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .card .field-list li:last-child { border-bottom: none; }
-  .card .field-list .k { color: var(--text-mid); }
-  .card .field-list .v { color: var(--accent); }
-
-  /* Takeaway cards have icon + larger title */
-  .takeaway {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 26px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    transition: border-color 160ms ease, transform 200ms ease;
-  }
-  .takeaway:hover {
-    border-color: var(--accent-line);
-    transform: translateY(-2px);
-  }
-  .takeaway-num {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.12em;
-  }
-  .takeaway-icon {
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--accent-line);
-    background: var(--accent-soft);
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent);
-  }
-  .takeaway h3 {
-    margin: 0;
-    font-size: 18px;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-  .takeaway p {
-    margin: 0;
-    color: var(--text-mid);
-    font-size: 15px;
-    line-height: 1.55;
-  }
-
-  /* ---------- Callouts ---------- */
-  .callout {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 16px;
-    padding: 18px 22px;
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    background: var(--panel);
-    border-radius: 6px;
-    margin: 24px 0;
-  }
-  .callout.warn { border-left-color: var(--warning); }
-  .callout.warn .callout-label { color: var(--warning); }
-  .callout.ok { border-left-color: var(--success); }
-  .callout.ok .callout-label { color: var(--success); }
-  .callout-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    align-self: start;
-    padding-top: 2px;
-    min-width: 76px;
-  }
-  .callout > p { grid-column: 2; }
-  .callout p:last-child { margin-bottom: 0; }
-
-  /* ---------- Code blocks ---------- */
-  .code-block {
-    background: var(--code-bg);
-    border: 1px solid var(--code-border);
-    border-radius: 6px;
-    margin: 16px 0 24px 0;
-    overflow: hidden;
-  }
-  .code-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--code-border);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    background: var(--code-head-bg);
-  }
-  .code-lang { color: var(--text-mid); }
-  .code-copy {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-mid);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    transition: border-color 140ms ease, color 140ms ease;
-  }
-  .code-copy:hover { color: var(--accent); border-color: var(--accent-line); }
-  .code-copy.copied { color: var(--success); border-color: var(--success); }
-  .code-block pre {
-    margin: 0;
-    padding: 16px 18px;
-    overflow-x: auto;
-    font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--syntax-text);
-  }
-  .code-block pre .c-cmt { color: var(--text-dim); }
-  .code-block pre .c-key { color: var(--syntax-keyword); }
-  .code-block pre .c-str { color: var(--syntax-string); }
-  .code-block pre .c-num { color: var(--syntax-number); }
-  .code-block pre .c-attr { color: var(--accent); }
-  .code-block pre .c-fn { color: var(--syntax-function); }
-  .code-block pre .c-out { color: var(--text-muted); }
-  .code-block pre .c-ok { color: var(--success); }
-  .code-block pre .c-warn { color: var(--warning); }
-
-  /* ---------- Step list (Tutorial / Install) ---------- */
-  .steps {
-    counter-reset: stepnum;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-  }
-  .step {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--panel);
-    padding: 24px 26px;
-    counter-increment: stepnum;
-    position: relative;
-  }
-  .step-head {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 8px;
-  }
-  .step-num {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border: 1px solid var(--accent-line);
-    padding: 4px 9px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-  .step-num::before { content: "STEP " counter(stepnum, decimal-leading-zero); }
-  .step-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0;
-    letter-spacing: -0.005em;
-  }
-  .step-body { color: var(--text-mid); font-size: 16px; }
-  .step-body p:last-child { margin-bottom: 0; }
-
-  /* ---------- Glossary ---------- */
-  .glossary {
-    border-top: 1px solid var(--border);
-    margin-top: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .glossary > li {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 24px;
-    padding: 18px 0;
-    border-bottom: 1px solid var(--border);
-    align-items: baseline;
-  }
-  .gloss-term {
-    font-weight: 700;
-    color: var(--text);
-    font-size: 16px;
-    letter-spacing: -0.005em;
-  }
-  .gloss-term .gloss-abbr {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-left: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .gloss-def {
-    color: var(--text-mid);
-    font-size: 15.5px;
-    line-height: 1.55;
-  }
-
-  /* ---------- Concept inline tag ---------- */
-  .tag {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 1px 8px;
-    border-radius: 3px;
-    background: var(--panel-2);
-    color: var(--text-mid);
-    border: 1px solid var(--border);
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-  }
-  .tag.accent { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
-  .tag.ok { color: var(--success); border-color: rgba(81, 207, 102, 0.32); background: var(--success-soft); }
-  .tag.warn { color: var(--warning); border-color: rgba(255, 212, 59, 0.32); background: var(--warning-soft); }
-
-  /* ---------- Reading list ---------- */
-  .reading-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border-top: 1px solid var(--border);
-  }
-  .reading-list li {
-    padding: 18px 0;
-    border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 14px;
-    align-items: center;
-  }
-  .reading-list .rl-title {
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 4px;
-    display: block;
-  }
-  .reading-list .rl-desc {
-    color: var(--text-mid);
-    font-size: 14px;
-  }
-  .reading-list .rl-link {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent);
-    border-bottom: 1px solid transparent;
-  }
-  .reading-list .rl-link:hover { border-bottom-color: var(--accent); }
-
-  /* ---------- Footer ---------- */
-  footer {
-    border-top: 1px solid var(--border);
-    margin-top: clamp(64px, 8vw, 96px);
-    padding: 32px var(--gutter);
-    color: var(--text-dim);
-    font-size: 13px;
-    font-family: var(--font-mono);
-    text-align: center;
-    letter-spacing: 0.04em;
-  }
-  footer .sep { color: var(--border-strong); margin: 0 10px; }
-
-  /* ---------- Responsive ---------- */
-  @media (min-width: 1100px) {
-    body { padding-left: 268px; }
-    .nav-links { display: none; }
-    .toc {
-      display: block;
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 268px;
+    /* ------------------------------------------------------------------
+       Reset and base
+       ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      margin: 0;
       background: var(--bg);
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      z-index: 35;
-      padding-top: 80px;
-      padding-bottom: 32px;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-body);
+      line-height: var(--leading-body);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color var(--transition), color var(--transition);
     }
-  }
-
-  @media (max-width: 760px) {
-    body { font-size: 17px; }
-    .nav-inner { gap: 14px; padding: 12px var(--gutter); }
-    .brand-sub { display: none; }
-    .glossary > li { grid-template-columns: 1fr; gap: 6px; }
-    .gloss-term { font-size: 15px; }
-    .reading-list li { grid-template-columns: 1fr; gap: 4px; }
-    .hero { padding-top: 48px; padding-bottom: 64px; }
-    .hero h1 { letter-spacing: -0.04em; }
-    .step { padding: 18px 18px; }
-    .callout { grid-template-columns: 1fr; gap: 6px; padding: 16px 18px; }
-    .callout-label { min-width: 0; }
-    .callout > p { grid-column: 1; }
-    .diagram { padding: 18px; }
-  }
-
-  @media (max-width: 400px) {
-    .hero h1 { font-size: 56px; }
-    body { font-size: 16px; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+      margin: 0;
+      color: var(--text);
     }
-  }
-</style>
+    h1 { font-size: var(--fs-h1); }
+    h2 { font-size: var(--fs-h2); }
+    h3 { font-size: var(--fs-h3); }
+    p { margin: 0; color: var(--text-muted); }
+    p.body-text { color: var(--text); }
+    code, pre, kbd { font-family: var(--font-mono); font-size: var(--fs-mono); }
+    p code, li code, dd code, td code {
+      background: var(--surface);
+      padding: 0 var(--space-2);
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.85em;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    a:hover { color: var(--accent-hover); }
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    section { scroll-margin-top: 80px; }
+
+    /* ------------------------------------------------------------------
+       Layout primitives
+       ------------------------------------------------------------------ */
+    .container {
+      width: 100%;
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--space-5);
+    }
+    .prose { max-width: var(--max-prose); }
+    .prose p { color: var(--text); }
+    .prose p + p { margin-top: var(--space-4); }
+    .prose p .muted { color: var(--text-muted); }
+
+    /* ------------------------------------------------------------------
+       Site header
+       ------------------------------------------------------------------ */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: saturate(180%) blur(8px);
+      -webkit-backdrop-filter: saturate(180%) blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-header .container {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding-block: var(--space-3);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .brand:hover { color: var(--text); }
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+    }
+    .brand-mark svg { width: 16px; height: 16px; }
+    .brand-text { font-size: 14px; text-transform: uppercase; letter-spacing: 0.14em; }
+    .brand-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      padding-left: var(--space-3);
+      margin-left: var(--space-1);
+      border-left: 1px solid var(--border);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-left: auto;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav a {
+      color: var(--text-muted);
+      font-size: var(--fs-small);
+      padding: var(--space-2) var(--space-3);
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: color var(--transition), background-color var(--transition);
+    }
+    .nav a:hover { color: var(--text); background: var(--surface); }
+    .nav a.is-active { color: var(--accent); background: var(--accent-soft); }
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background-color var(--transition), border-color var(--transition);
+      flex-shrink: 0;
+    }
+    .icon-button:hover { background: var(--surface); border-color: var(--border-strong); }
+    .icon-button svg { width: 18px; height: 18px; }
+    [data-theme="light"] #icon-moon { display: block; }
+    [data-theme="light"] #icon-sun { display: none; }
+    [data-theme="dark"]  #icon-moon { display: none; }
+    [data-theme="dark"]  #icon-sun  { display: block; }
+
+    /* ------------------------------------------------------------------
+       Hero
+       ------------------------------------------------------------------ */
+    .hero {
+      padding-block: var(--space-9) var(--space-8);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: var(--space-5);
+    }
+    .hero .eyebrow .dot {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+    .hero h1 {
+      max-width: 18ch;
+      letter-spacing: -0.035em;
+      line-height: 1.02;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero .lede {
+      max-width: 62ch;
+      color: var(--text-muted);
+      font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
+      margin-top: var(--space-5);
+    }
+    .hero .lede em {
+      color: var(--text);
+      font-style: normal;
+      font-weight: 700;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-6);
+      list-style: none;
+      padding: 0;
+    }
+    .badges li {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      border-radius: 999px;
+    }
+    .badges .badge-key {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+    .badges .badge-val { color: var(--text); font-weight: 700; }
+    .badges .swatch {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .branding {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-6);
+      list-style: none;
+      padding: 0;
+    }
+    .branding a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: var(--fs-small);
+      transition: color var(--transition), border-color var(--transition), background-color var(--transition);
+    }
+    .branding a:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface);
+    }
+    .branding svg { width: 16px; height: 16px; }
+
+    /* ------------------------------------------------------------------
+       TL;DR card
+       ------------------------------------------------------------------ */
+    .tldr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+    }
+    .tldr-label {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-3);
+    }
+    .tldr .tldr-lead {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: var(--tracking-tight);
+      margin-bottom: var(--space-4);
+      max-width: 60ch;
+      color: var(--text);
+    }
+    .tldr ul {
+      margin: 0;
+      padding-left: var(--space-5);
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+    }
+    .tldr li + li { margin-top: var(--space-2); }
+    .tldr li strong { color: var(--text); font-weight: 700; }
+
+    /* ------------------------------------------------------------------
+       Sections
+       ------------------------------------------------------------------ */
+    main > section { padding-block: var(--space-9); border-bottom: 1px solid var(--border); }
+    main > section:last-of-type { border-bottom: 0; }
+    .section-marker {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+    .section-marker::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .section-head { margin-bottom: var(--space-7); }
+    .section-head h2 { max-width: 22ch; }
+    .section-head .lede {
+      max-width: var(--max-prose);
+      color: var(--text-muted);
+      font-size: 1.0625rem;
+      margin-top: var(--space-4);
+    }
+    .section-head .lede em {
+      color: var(--text);
+      font-style: normal;
+      font-weight: 700;
+    }
+    .sub-head { margin-top: var(--space-7); margin-bottom: var(--space-4); }
+
+    /* ------------------------------------------------------------------
+       Grids
+       ------------------------------------------------------------------ */
+    .grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+    @media (min-width: 640px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 960px) {
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ------------------------------------------------------------------
+       Concept / feature cards
+       ------------------------------------------------------------------ */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+    .card-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: var(--space-1) var(--space-2);
+      border-radius: 4px;
+      margin-bottom: var(--space-3);
+    }
+    .card h3 { margin-bottom: var(--space-2); font-size: 1.0625rem; }
+    .card p { color: var(--text-muted); font-size: 0.9375rem; }
+    .card p em { color: var(--text); font-style: normal; font-weight: 700; }
+    .card .field-list {
+      list-style: none;
+      padding: 0;
+      margin: var(--space-3) 0 0 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .card .field-list li {
+      padding: var(--space-1) 0;
+      border-bottom: 1px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    .card .field-list li:last-child { border-bottom: none; }
+    .card .field-list .k { color: var(--text-muted); }
+    .card .field-list .v { color: var(--accent); }
+    .card-span-full { grid-column: 1 / -1; }
+
+    /* Takeaways: numbered card with icon */
+    .takeaway {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .takeaway:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+    .takeaway-head {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .takeaway-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .takeaway-icon svg { width: 18px; height: 18px; }
+    .takeaway-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+    .takeaway h3 { font-size: 1.0625rem; }
+    .takeaway p { color: var(--text-muted); font-size: 0.9375rem; }
+
+    /* ------------------------------------------------------------------
+       Callouts
+       ------------------------------------------------------------------ */
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: var(--space-4) var(--space-5);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin-block: var(--space-5);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .callout > .callout-body { min-width: 0; }
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+      padding-top: var(--space-1);
+    }
+    .callout p { color: var(--text); font-size: 0.9375rem; }
+    .callout p + p { margin-top: var(--space-3); }
+    .callout p em { color: var(--text); font-style: italic; font-weight: 400; }
+    .callout p strong { color: var(--text); font-weight: 700; }
+
+    .callout.warn { border-left-color: var(--state-warn); background: var(--state-warn-soft); }
+    .callout.warn .callout-label { color: var(--state-warn); }
+    .callout.ok { border-left-color: var(--state-ok); background: var(--state-ok-soft); }
+    .callout.ok .callout-label { color: var(--state-ok); }
+
+    /* ------------------------------------------------------------------
+       Code blocks (with copy button)
+       ------------------------------------------------------------------ */
+    .code-block {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-block: var(--space-4);
+    }
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-4);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .code-lang { letter-spacing: 0.06em; }
+    .code-copy {
+      appearance: none;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: var(--space-1) var(--space-2);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition), background-color var(--transition);
+    }
+    .code-copy:hover { color: var(--text); border-color: var(--border-strong); }
+    .code-copy.copied { color: var(--state-ok); border-color: var(--state-ok); }
+    .code-block pre {
+      margin: 0;
+      padding: var(--space-4);
+      overflow-x: auto;
+      font-size: var(--fs-mono);
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .code-block pre .c-cmt { color: var(--text-muted); font-style: italic; }
+    .code-block pre .c-out { color: var(--text-muted); }
+    .code-block pre .c-ok { color: var(--state-ok); font-weight: 700; }
+    .code-block pre .c-warn { color: var(--state-warn); }
+    .code-block pre .c-bad { color: var(--state-bad); }
+    .code-block pre .c-attr { color: var(--accent); }
+    .code-block pre .c-str { color: var(--state-ok); }
+
+    /* ------------------------------------------------------------------
+       Numbered step list (Install + Tutorial)
+       ------------------------------------------------------------------ */
+    .steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      counter-reset: step;
+      display: grid;
+      gap: var(--space-5);
+    }
+    .step {
+      counter-increment: step;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5) var(--space-5) var(--space-5) var(--space-7);
+      position: relative;
+    }
+    .step::before {
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: var(--space-4);
+      top: var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      background: var(--accent-soft);
+      padding: var(--space-1) var(--space-2);
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .step-title { margin-bottom: var(--space-3); }
+    .step p { color: var(--text); font-size: 0.9375rem; }
+    .step p + p { margin-top: var(--space-3); }
+    .step p em { color: var(--text); font-style: italic; font-weight: 400; }
+    .step p strong { color: var(--text); font-weight: 700; }
+
+    /* ------------------------------------------------------------------
+       Glossary (dl)
+       ------------------------------------------------------------------ */
+    dl.glossary {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-4) var(--space-6);
+      margin: 0;
+    }
+    @media (min-width: 720px) {
+      dl.glossary { grid-template-columns: 220px 1fr; }
+    }
+    dl.glossary dt {
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+    dl.glossary dt .gloss-abbr {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-transform: lowercase;
+    }
+    dl.glossary dd {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+    }
+    dl.glossary dd em { font-style: italic; color: var(--text); }
+    @media (min-width: 720px) {
+      dl.glossary dt { padding-top: var(--space-1); }
+    }
+
+    /* ------------------------------------------------------------------
+       Reading list
+       ------------------------------------------------------------------ */
+    ul.reading {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: var(--space-3);
+    }
+    ul.reading li {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-4) var(--space-5);
+      background: var(--surface);
+      transition: border-color var(--transition);
+    }
+    ul.reading li:hover { border-color: var(--border-strong); }
+    ul.reading a {
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    ul.reading a svg { width: 14px; height: 14px; }
+    ul.reading .note {
+      display: block;
+      margin-top: var(--space-1);
+      color: var(--text-muted);
+      font-size: var(--fs-small);
+    }
+
+    /* ------------------------------------------------------------------
+       Diagram frame
+       ------------------------------------------------------------------ */
+    .diagram-frame {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin: var(--space-5) 0;
+    }
+    .diagram-frame svg { display: block; width: 100%; height: auto; }
+    .diagram-frame figcaption {
+      margin-top: var(--space-3);
+      color: var(--text-muted);
+      font-size: var(--fs-small);
+      text-align: center;
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
+    }
+
+    /* ------------------------------------------------------------------
+       Site footer
+       ------------------------------------------------------------------ */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding-block: var(--space-6);
+      color: var(--text-muted);
+      font-size: var(--fs-small);
+    }
+    .site-footer .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<div class="top-stripe" aria-hidden="true"></div>
-
-<nav class="nav" aria-label="Section navigation">
-  <div class="nav-inner">
-    <a href="#top" class="brand" aria-label="CALM home">
-      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="2" y="2" width="20" height="20" rx="3" stroke="#4dabf7" stroke-width="1.5"/>
-        <path d="M7 9h10M7 12h6M7 15h8" stroke="#4dabf7" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <span class="brand-text">CALM</span>
-      <span class="brand-sub">FINOS / AasC</span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#introduction">Introduction</a></li>
-      <li><a href="#concepts">Concepts</a></li>
-      <li><a href="#why">Why</a></li>
-      <li><a href="#install">Install</a></li>
-      <li><a href="#tutorial">Tutorial</a></li>
-      <li><a href="#glossary">Glossary</a></li>
-      <li><a href="#takeaways">Takeaways</a></li>
-      <li><a href="#reading">Reading</a></li>
-    </ul>
-    <button class="theme-toggle" type="button" aria-label="Switch to light theme">
-      <svg class="t-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="4"/>
-        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-      </svg>
-      <svg class="t-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
-  </div>
-</nav>
-
-<aside class="toc" aria-label="Table of contents">
-  <div class="toc-inner">
-    <div class="toc-eyebrow">Contents</div>
-    <ol class="toc-list">
-      <li><a href="#introduction"><span class="toc-num">01</span><span>Introduction</span></a></li>
-      <li><a href="#concepts"><span class="toc-num">02</span><span>Concepts</span></a></li>
-      <li><a href="#why"><span class="toc-num">03</span><span>Why CALM</span></a></li>
-      <li><a href="#install"><span class="toc-num">04</span><span>Install</span></a></li>
-      <li><a href="#tutorial"><span class="toc-num">05</span><span>Tutorial</span></a></li>
-      <li><a href="#glossary"><span class="toc-num">06</span><span>Glossary</span></a></li>
-      <li><a href="#takeaways"><span class="toc-num">07</span><span>Takeaways</span></a></li>
-      <li><a href="#reading"><span class="toc-num">08</span><span>Reading</span></a></li>
-    </ol>
-    <hr class="toc-divider">
-    <div class="toc-foot">
-      <span class="toc-foot-label">Author</span>
-      <a href="https://github.com/jamesbuckett" target="_blank" rel="noopener">github.com/jamesbuckett</a>
-    </div>
-  </div>
-</aside>
-
-<main id="top">
-
-  <!-- ============== HERO ============== -->
-  <header class="hero">
+  <header class="site-header">
     <div class="container">
-      <div class="hero-eyebrow">
-        <span class="dot" aria-hidden="true"></span>
-        <span>FINOS / Architecture as Code</span>
-        <span aria-hidden="true">—</span>
-        <span>v1.0 / August 2025</span>
-      </div>
-      <h1>The <span class="accent">Common</span><br>Architecture Language Model.</h1>
-      <p class="hero-tagline">
-        CALM is an open-source, JSON-based meta-schema for defining system architectures as code &mdash;
-        <em>versioned, validatable, and composable</em> alongside the implementations they describe.
-      </p>
-      <div class="badges" role="list">
-        <span class="badge" role="listitem"><span class="swatch b1"></span><span class="badge-key">License</span><span class="badge-val">Open Source</span></span>
-        <span class="badge" role="listitem"><span class="swatch b2"></span><span class="badge-key">Steward</span><span class="badge-val">FINOS</span></span>
-        <span class="badge" role="listitem"><span class="swatch b3"></span><span class="badge-key">Release</span><span class="badge-val">v1.0</span></span>
-        <span class="badge" role="listitem"><span class="swatch b4"></span><span class="badge-key">Paradigm</span><span class="badge-val">Architecture as Code</span></span>
-      </div>
+      <a class="brand" href="#top" aria-label="CALM home">
+        <span class="brand-mark" aria-hidden="true">
+          <!-- Lucide: layers -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </span>
+        <span class="brand-text">CALM</span>
+        <span class="brand-sub">FINOS / AasC</span>
+      </a>
+      <nav class="nav" aria-label="Section navigation">
+        <a href="#introduction">Introduction</a>
+        <a href="#concepts">Concepts</a>
+        <a href="#why">Why</a>
+        <a href="#install">Install</a>
+        <a href="#tutorial">Tutorial</a>
+        <a href="#glossary">Glossary</a>
+        <a href="#takeaways">Takeaways</a>
+        <a href="#reading">Reading</a>
+      </nav>
+      <button id="theme-toggle" class="icon-button" type="button" aria-label="Toggle theme">
+        <!-- Lucide: moon -->
+        <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <!-- Lucide: sun -->
+        <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
     </div>
   </header>
 
-  <hr class="section-divider">
-
-  <!-- ============== 01 INTRODUCTION ============== -->
-  <section id="introduction" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 01 &mdash; Introduction</span></div>
-      <h2 class="section-title">Architecture lives where code lives.</h2>
-      <p class="section-lead">
-        For three decades, architecture artefacts have lived in Visio files, Confluence pages, and PowerPoint
-        decks. Implementation has lived in Git. The two have drifted apart at every release. CALM closes that
-        gap by treating the model itself as a versioned JSON document that travels with the source.
-      </p>
-
-      <h3>The status quo: drift by design</h3>
-      <p>
-        Every Tier 1 institution has the same problem. A reference architecture is approved by a board, drawn in Visio,
-        attached to an ADR, and within two sprints it no longer reflects the deployed estate. Reviews happen in meetings
-        that produce no machine-checkable output. Compliance evidence becomes a forensic exercise &mdash; piecing together
-        screenshots, change tickets, and runbook entries to satisfy <span class="tag">DORA Art. 6</span>,
-        <span class="tag">SOX ITGC</span>, or <span class="tag">MAS TRM 8.4</span>.
-      </p>
-
-      <h3>The CALM answer: one document, one truth</h3>
-      <p>
-        A CALM <span class="tag accent">architecture.calm.json</span> is the contract. It binds intent (the pattern) to
-        instantiation (the deployed system) to control (the compliance posture). It is reviewable in pull requests,
-        validatable in CI, renderable as C4 diagrams, and queryable for drift. The same artefact answers
-        <em>&ldquo;what is the system?&rdquo;</em>, <em>&ldquo;does it meet our golden pattern?&rdquo;</em>, and
-        <em>&ldquo;which controls apply?&rdquo;</em>.
-      </p>
-
-      <div class="diagram" aria-labelledby="d1-caption">
-        <svg viewBox="0 0 880 360" role="img" aria-label="Before and after comparison: disconnected artefacts versus a single CALM source of truth.">
-          <defs>
-            <marker id="arrow-broken" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#5a6573"/>
-            </marker>
-            <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#4dabf7"/>
-            </marker>
-          </defs>
-
-          <!-- Left panel: Before -->
-          <rect x="20" y="40" width="380" height="300" rx="4" fill="#1a2028" stroke="#2a3340" stroke-width="1"/>
-          <text x="36" y="68" font-family="ui-monospace, monospace" font-size="11" fill="#5a6573" letter-spacing="2">BEFORE / DRIFT</text>
-
-          <!-- Disconnected artefacts -->
-          <g font-family="ui-monospace, monospace" font-size="11">
-            <rect x="48" y="92" width="138" height="48" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="60" y="113" fill="#aeb6c0">visio.vsdx</text>
-            <text x="60" y="128" fill="#7c8693" font-size="10">approved 2023-Q1</text>
-
-            <rect x="234" y="92" width="138" height="48" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="246" y="113" fill="#aeb6c0">arch.pptx</text>
-            <text x="246" y="128" fill="#7c8693" font-size="10">slides &middot; ARB deck</text>
-
-            <rect x="48" y="172" width="138" height="48" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="60" y="193" fill="#aeb6c0">confluence</text>
-            <text x="60" y="208" fill="#7c8693" font-size="10">rev. unknown</text>
-
-            <rect x="234" y="172" width="138" height="48" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="246" y="193" fill="#aeb6c0">main.repo</text>
-            <text x="246" y="208" fill="#7c8693" font-size="10">drift &gt; 18 months</text>
-          </g>
-
-          <!-- Broken connections (dashed, weak) -->
-          <g stroke="#5a6573" stroke-width="1" fill="none" stroke-dasharray="4 3" marker-end="url(#arrow-broken)">
-            <path d="M186 116 L 234 116"/>
-            <path d="M186 196 L 234 196"/>
-            <path d="M117 140 L 117 172"/>
-            <path d="M303 140 L 303 172"/>
-          </g>
-
-          <!-- Compliance badge (failure) -->
-          <g font-family="ui-monospace, monospace" font-size="10">
-            <rect x="48" y="248" width="324" height="58" rx="3" fill="#1a2028" stroke="#ff6b6b" stroke-width="1"/>
-            <text x="62" y="270" fill="#ff6b6b" font-size="11" letter-spacing="2">COMPLIANCE / FORENSIC</text>
-            <text x="62" y="288" fill="#aeb6c0">DORA evidence: reconstructed manually</text>
-            <text x="62" y="302" fill="#aeb6c0">Last sync: unknown</text>
-          </g>
-
-          <!-- Center transition -->
-          <g>
-            <line x1="408" y1="180" x2="468" y2="180" stroke="#4dabf7" stroke-width="1.5" marker-end="url(#arrow-solid)"/>
-            <text x="420" y="170" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">CALM</text>
-          </g>
-
-          <!-- Right panel: After -->
-          <rect x="478" y="40" width="382" height="300" rx="4" fill="#1a2028" stroke="#2a3340" stroke-width="1"/>
-          <text x="494" y="68" font-family="ui-monospace, monospace" font-size="11" fill="#4dabf7" letter-spacing="2">AFTER / IN SYNC</text>
-
-          <!-- Central CALM doc -->
-          <g>
-            <rect x="608" y="148" width="148" height="60" rx="4" fill="#0f1419" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="618" y="172" font-family="ui-monospace, monospace" font-size="11" fill="#4dabf7">architecture.calm.json</text>
-            <text x="618" y="190" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">$schema: calm/1.0</text>
-          </g>
-
-          <!-- Surrounding nodes -->
-          <g font-family="ui-monospace, monospace" font-size="11">
-            <rect x="498" y="92" width="124" height="40" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="510" y="116" fill="#aeb6c0">pattern repo</text>
-
-            <rect x="742" y="92" width="118" height="40" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="754" y="116" fill="#aeb6c0">CALM Hub</text>
-
-            <rect x="498" y="224" width="124" height="40" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="510" y="248" fill="#aeb6c0">code repo</text>
-
-            <rect x="742" y="224" width="118" height="40" rx="3" fill="#232b35" stroke="#3a4452" stroke-width="1"/>
-            <text x="754" y="248" fill="#aeb6c0">CI / validate</text>
-          </g>
-
-          <!-- Solid connections -->
-          <g stroke="#4dabf7" stroke-width="1.25" fill="none" marker-end="url(#arrow-solid)">
-            <path d="M620 132 L 660 148"/>
-            <path d="M742 112 L 700 148"/>
-            <path d="M620 224 L 660 208"/>
-            <path d="M742 244 L 704 208"/>
-          </g>
-
-          <!-- Compliance badge (success) -->
-          <g font-family="ui-monospace, monospace" font-size="10">
-            <rect x="498" y="284" width="362" height="38" rx="3" fill="#1a2028" stroke="#51cf66" stroke-width="1"/>
-            <text x="512" y="304" fill="#51cf66" font-size="11" letter-spacing="2">DORA / MAS TRM:</text>
-            <text x="618" y="304" fill="#aeb6c0">controls captured in model &middot; auto-renderable</text>
-          </g>
-        </svg>
-        <div id="d1-caption" class="diagram-caption">Fig. 01 &mdash; Disconnected artefacts (left) versus CALM as the single linking spec (right).</div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="section-divider">
-
-  <!-- ============== 02 CORE CONCEPTS ============== -->
-  <section id="concepts" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 02 &mdash; Core Concepts</span></div>
-      <h2 class="section-title">The vocabulary of the spec.</h2>
-      <p class="section-lead">
-        CALM has a small, deliberate set of primitives. Each is a typed JSON object with a unique identifier and a
-        defined slot in the meta-schema. Learn these seven and you have read the entire spec.
-      </p>
-
-      <div class="grid grid-3" style="margin-bottom: 8px;">
-        <article class="card">
-          <span class="card-tag">Node</span>
-          <h3>Typed system entity</h3>
-          <p>
-            A service, database, network, actor, deployment target, or other addressable element. Identified by a
-            stable <code>unique-id</code> within the document.
-          </p>
-          <ul class="field-list">
-            <li><span class="k">unique-id</span><span class="v">string</span></li>
-            <li><span class="k">node-type</span><span class="v">enum</span></li>
-            <li><span class="k">name</span><span class="v">string</span></li>
-            <li><span class="k">description</span><span class="v">string</span></li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <span class="card-tag">Relationship</span>
-          <h3>Typed edge</h3>
-          <p>
-            Connects two or more nodes. The <code>relationship-type</code> determines semantics:
-            <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, or <em>interacts</em>.
-          </p>
-          <ul class="field-list">
-            <li><span class="k">unique-id</span><span class="v">string</span></li>
-            <li><span class="k">relationship-type</span><span class="v">object</span></li>
-            <li><span class="k">protocol</span><span class="v">string</span></li>
-            <li><span class="k">authentication</span><span class="v">enum</span></li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <span class="card-tag">Metadata</span>
-          <h3>Extensible key/value</h3>
-          <p>
-            The escape hatch. Anything that does not fit the core schema &mdash; cost centre, data classification,
-            business owner &mdash; lives here as structured key/value pairs.
-          </p>
-          <ul class="field-list">
-            <li><span class="k">free-form</span><span class="v">object[]</span></li>
-            <li><span class="k">attached to</span><span class="v">any node</span></li>
-            <li><span class="k">validated by</span><span class="v">pattern</span></li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <span class="card-tag">Pattern</span>
-          <h3>Reusable template</h3>
-          <p>
-            A pattern is a JSON Schema that describes a class of valid architectures &mdash; for example, a
-            golden three-tier web app or an event-driven microservice topology. Patterns are the unit of reuse.
-          </p>
-          <ul class="field-list">
-            <li><span class="k">$schema</span><span class="v">meta/calm</span></li>
-            <li><span class="k">defines</span><span class="v">node + rel types</span></li>
-            <li><span class="k">enforces</span><span class="v">controls</span></li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <span class="card-tag">Architecture</span>
-          <h3>Concrete instantiation</h3>
-          <p>
-            An architecture document is a specific, validated <em>instance</em> of a pattern. It contains the
-            same nodes and relationships, populated with real names, owners, and runtime details.
-          </p>
-          <ul class="field-list">
-            <li><span class="k">validates against</span><span class="v">pattern</span></li>
-            <li><span class="k">populated by</span><span class="v">team</span></li>
-            <li><span class="k">deployed as</span><span class="v">system</span></li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <span class="card-tag">Control</span>
-          <h3>Compliance / security check</h3>
-          <p>
-            Declarative requirements attached to nodes or relationships. Examples: &ldquo;all relationships
-            entering PCI scope must use mTLS&rdquo;, &ldquo;every persistent store must declare encryption at rest&rdquo;.
-          </p>
-          <ul class="field-list">
-            <li><span class="k">control-id</span><span class="v">string</span></li>
-            <li><span class="k">requirement</span><span class="v">object</span></li>
-            <li><span class="k">evidence</span><span class="v">link</span></li>
-          </ul>
-        </article>
-
-        <article class="card" style="grid-column: 1 / -1;">
-          <span class="card-tag">Flow</span>
-          <h3>Ordered sequence of interactions</h3>
-          <p>
-            A flow describes a business or data path across nodes &mdash; for example, the steps to register an
-            attendee, settle a trade, or process an instant payment. Flows reference existing nodes and relationships
-            in order, so they remain consistent with the structural model.
-          </p>
-        </article>
-      </div>
-
-      <h3 style="margin-top: 48px;">A minimal model, visualised</h3>
-      <p>
-        Three nodes, two relationships, one control. The same model is renderable as a C4 container diagram or
-        as a Mermaid graph &mdash; CALM is the source, the diagrams are views.
-      </p>
-
-      <div class="diagram" aria-labelledby="d2-caption">
-        <svg viewBox="0 0 880 340" role="img" aria-label="Sample CALM model with three nodes (web app, API, database), two relationships and a control attached.">
-          <defs>
-            <marker id="arrow-rel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#4dabf7"/>
-            </marker>
-          </defs>
-
-          <!-- Pattern frame -->
-          <rect x="20" y="20" width="840" height="300" rx="6" fill="transparent" stroke="#2a3340" stroke-width="1" stroke-dasharray="2 4"/>
-          <text x="36" y="44" font-family="ui-monospace, monospace" font-size="11" fill="#5a6573" letter-spacing="2">PATTERN: three-tier-web-app</text>
-          <text x="724" y="44" font-family="ui-monospace, monospace" font-size="11" fill="#5a6573" letter-spacing="2">v1.0-rc2</text>
-
-          <!-- Node 1: web-app -->
-          <g>
-            <rect x="60" y="120" width="190" height="110" rx="5" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="76" y="146" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">NODE / webclient</text>
-            <text x="76" y="172" font-family="-apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#e8ebee">web-app</text>
-            <text x="76" y="194" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">id: conference-web</text>
-            <text x="76" y="212" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">port: 443</text>
-          </g>
-
-          <!-- Node 2: api -->
-          <g>
-            <rect x="345" y="120" width="190" height="110" rx="5" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="361" y="146" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">NODE / service</text>
-            <text x="361" y="172" font-family="-apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#e8ebee">api</text>
-            <text x="361" y="194" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">id: conference-api</text>
-            <text x="361" y="212" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">port: 8080</text>
-          </g>
-
-          <!-- Node 3: database -->
-          <g>
-            <rect x="630" y="120" width="190" height="110" rx="5" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="646" y="146" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">NODE / database</text>
-            <text x="646" y="172" font-family="-apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#e8ebee">attendee-db</text>
-            <text x="646" y="194" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">id: attendee-store</text>
-            <text x="646" y="212" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">port: 5432</text>
-          </g>
-
-          <!-- Relationships -->
-          <g>
-            <line x1="250" y1="175" x2="345" y2="175" stroke="#4dabf7" stroke-width="1.5" marker-end="url(#arrow-rel)"/>
-            <text x="265" y="166" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">connects &middot; HTTPS</text>
-            <text x="265" y="192" font-family="ui-monospace, monospace" font-size="10" fill="#5a6573">rel: web-to-api</text>
-          </g>
-          <g>
-            <line x1="535" y1="175" x2="630" y2="175" stroke="#4dabf7" stroke-width="1.5" marker-end="url(#arrow-rel)"/>
-            <text x="550" y="166" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">connects &middot; JDBC</text>
-            <text x="550" y="192" font-family="ui-monospace, monospace" font-size="10" fill="#5a6573">rel: api-to-db</text>
-          </g>
-
-          <!-- Control -->
-          <g>
-            <rect x="345" y="262" width="190" height="42" rx="4" fill="#1a2028" stroke="#ffd43b" stroke-width="1"/>
-            <text x="361" y="280" font-family="ui-monospace, monospace" font-size="10" fill="#ffd43b" letter-spacing="2">CONTROL / C-001</text>
-            <text x="361" y="296" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">mTLS + SPIFFE identity required</text>
-            <line x1="440" y1="230" x2="440" y2="262" stroke="#ffd43b" stroke-width="1" stroke-dasharray="2 3"/>
-          </g>
-        </svg>
-        <div id="d2-caption" class="diagram-caption">Fig. 02 &mdash; A minimal CALM model: three nodes, two relationships, one control. The dashed frame is the pattern; the populated boxes are the architecture.</div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="section-divider">
-
-  <!-- ============== 03 WHY CALM MATTERS ============== -->
-  <section id="why" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 03 &mdash; Why It Matters</span></div>
-      <h2 class="section-title">For Tier 1 financial institutions, this is overdue.</h2>
-      <p class="section-lead">
-        FINOS members did not open-source CALM to make documentation prettier. They open-sourced it because
-        regulators are asking the same questions in five jurisdictions, and there is no scalable way to answer
-        them with PowerPoint.
-      </p>
-
-      <div class="grid grid-2">
-        <article class="card">
-          <span class="card-tag">Compliance</span>
-          <h3>Controls become first-class</h3>
-          <p>
-            Attach <span class="tag warn">DORA Art. 6</span>, <span class="tag warn">PCI-DSS 4.0 8.3</span>,
-            <span class="tag warn">SWIFT CSCF 2.4A</span> directly to the relationships they govern. Evidence is
-            queryable instead of forensic.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Drift</span>
-          <h3>Reality vs. intent, diffed</h3>
-          <p>
-            A nightly job introspects the cluster (or Terraform state, or cloud APIs) and renders the live
-            topology as CALM. Diff against the approved document &rarr; drift PR opened automatically.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Review</span>
-          <h3>Architecture review = PR review</h3>
-          <p>
-            Architecture changes are GitHub pull requests on the CALM document. Reviewers see the JSON diff,
-            the rendered C4 view, and the controls delta in the same place they review code.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Reuse</span>
-          <h3>Golden patterns enforced at PR time</h3>
-          <p>
-            A new service must validate against the approved pattern before merge. The control plane fails the
-            build &mdash; it does not wait for the next ARB. By the time a system reaches production review,
-            it has already been validated.
-          </p>
-        </article>
-      </div>
-
-      <h3 style="margin-top: 40px;">The CI/CD checkpoint</h3>
-      <p>
-        CALM validation drops into the same pipeline as your unit tests and SAST scans. A pull request that
-        breaks the pattern fails at the same gate as a pull request that breaks a test.
-      </p>
-
-      <div class="diagram" aria-labelledby="d3-caption">
-        <svg viewBox="0 0 920 220" role="img" aria-label="CI/CD pipeline diagram showing CALM validate as a gate alongside unit tests and security scans.">
-          <defs>
-            <marker id="arrow-pipe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#5a6573"/>
-            </marker>
-          </defs>
-
-          <text x="20" y="36" font-family="ui-monospace, monospace" font-size="11" fill="#5a6573" letter-spacing="2">CI PIPELINE / on: pull_request</text>
-
-          <!-- Pipeline track -->
-          <line x1="40" y1="110" x2="900" y2="110" stroke="#2a3340" stroke-width="1"/>
-
-          <!-- Stages -->
-          <g font-family="ui-monospace, monospace" font-size="11">
-            <!-- commit -->
-            <circle cx="80" cy="110" r="6" fill="#4dabf7"/>
-            <text x="62" y="84" fill="#aeb6c0">commit</text>
-            <text x="58" y="140" fill="#5a6573" font-size="10">push</text>
-
-            <!-- lint -->
-            <circle cx="190" cy="110" r="6" fill="#4dabf7"/>
-            <text x="172" y="84" fill="#aeb6c0">lint</text>
-            <text x="160" y="140" fill="#5a6573" font-size="10">eslint &middot; rufo</text>
-
-            <!-- unit tests -->
-            <circle cx="320" cy="110" r="6" fill="#4dabf7"/>
-            <text x="296" y="84" fill="#aeb6c0">unit tests</text>
-            <text x="288" y="140" fill="#5a6573" font-size="10">jest &middot; pytest</text>
-
-            <!-- CALM validate (highlighted) -->
-            <rect x="430" y="84" width="120" height="52" rx="4" fill="#0f1419" stroke="#4dabf7" stroke-width="1.5"/>
-            <circle cx="490" cy="110" r="6" fill="#4dabf7"/>
-            <text x="447" y="104" fill="#4dabf7" font-weight="700">calm validate</text>
-            <text x="447" y="124" fill="#aeb6c0" font-size="10">pattern + controls</text>
-            <text x="447" y="158" fill="#4dabf7" font-size="10" letter-spacing="2">NEW GATE</text>
-
-            <!-- SAST -->
-            <circle cx="640" cy="110" r="6" fill="#4dabf7"/>
-            <text x="618" y="84" fill="#aeb6c0">sast</text>
-            <text x="608" y="140" fill="#5a6573" font-size="10">semgrep &middot; codeql</text>
-
-            <!-- build -->
-            <circle cx="760" cy="110" r="6" fill="#4dabf7"/>
-            <text x="744" y="84" fill="#aeb6c0">build</text>
-            <text x="734" y="140" fill="#5a6573" font-size="10">image + SBOM</text>
-
-            <!-- deploy -->
-            <circle cx="870" cy="110" r="6" fill="#51cf66"/>
-            <text x="848" y="84" fill="#51cf66">deploy</text>
-            <text x="842" y="140" fill="#5a6573" font-size="10">argo / flux</text>
-          </g>
-
-          <!-- Output indicators -->
-          <g font-family="ui-monospace, monospace" font-size="10">
-            <text x="20" y="190" fill="#5a6573" letter-spacing="2">FAIL FAST:</text>
-            <text x="120" y="190" fill="#aeb6c0">non-conforming patterns blocked at PR time, before image build.</text>
-          </g>
-        </svg>
-        <div id="d3-caption" class="diagram-caption">Fig. 03 &mdash; <code>calm validate</code> sits alongside unit tests and SAST as a first-class CI gate.</div>
-      </div>
-
-      <div class="callout">
-        <span class="callout-label">Regulatory</span>
-        <p>
-          Controls captured in CALM map cleanly to the evidence requirements of DORA (EU), MAS TRM (Singapore),
-          APRA CPS 234 (Australia), HKMA SA-2 (Hong Kong), and OSFI B-13 (Canada). The model is the audit trail.
-          <em>Verify against calm.finos.org</em> for the current set of reference control packs.
+  <main id="top">
+    <!-- ============== HERO ============== -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container">
+        <div class="eyebrow">
+          <span class="dot" aria-hidden="true"></span>
+          <span>FINOS / Architecture as Code</span>
+          <span aria-hidden="true">·</span>
+          <span>v1.0 / August 2025</span>
+        </div>
+        <h1 id="hero-title">The <span class="accent">Common</span><br>Architecture Language Model.</h1>
+        <p class="lede">
+          CALM is an open-source, JSON-based meta-schema for defining system architectures as code &mdash;
+          <em>versioned, validatable, and composable</em> alongside the implementations they describe.
         </p>
+        <ul class="badges" aria-label="Project facts">
+          <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">License</span><span class="badge-val">Open Source</span></li>
+          <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Steward</span><span class="badge-val">FINOS</span></li>
+          <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Release</span><span class="badge-val">v1.0</span></li>
+          <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Paradigm</span><span class="badge-val">Architecture as Code</span></li>
+        </ul>
+        <ul class="branding" aria-label="Personal links">
+          <li><a href="https://github.com/jamesbuckett" rel="noopener noreferrer" target="_blank">
+            <!-- Lucide: github -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            GitHub
+          </a></li>
+          <li><a href="https://twitter.com/jamesbuckett" rel="noopener noreferrer" target="_blank">
+            <!-- Lucide: twitter (x glyph) -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+            Twitter / X
+          </a></li>
+          <li><a href="https://www.linkedin.com/in/jamesbuckett" rel="noopener noreferrer" target="_blank">
+            <!-- Lucide: linkedin -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn
+          </a></li>
+        </ul>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <hr class="section-divider">
+    <!-- ============== TL;DR ============== -->
+    <section id="tldr" aria-labelledby="tldr-title">
+      <div class="container">
+        <div class="tldr">
+          <h2 id="tldr-title" class="tldr-label" style="font-size: 14px;">TL;DR — Summary</h2>
+          <p class="tldr-lead">CALM turns architecture into a versioned JSON document that travels with the code, validates in CI, and binds compliance controls to the relationships they govern.</p>
+          <ul>
+            <li><strong>One artefact.</strong> Pattern, architecture, and controls live in one <code>architecture.calm.json</code>, validated against a shared meta-schema.</li>
+            <li><strong>PR-time enforcement.</strong> <code>calm validate</code> runs next to your unit tests; non-conforming changes fail the build, not the next ARB.</li>
+            <li><strong>Regulator-ready.</strong> Controls map cleanly to DORA, PCI-DSS 4.0, MAS TRM, APRA CPS 234, HKMA SA-2, and OSFI B-13 evidence requirements.</li>
+            <li><strong>Tooling exists today.</strong> Install <code>@finos/calm-cli</code> from npm, render with CALM Hub, and ship a docs site with <code>calm docify</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-  <!-- ============== 04 INSTALL ============== -->
-  <section id="install" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 04 &mdash; Installation</span></div>
-      <h2 class="section-title">Install on Ubuntu 26.04 LTS.</h2>
-      <p class="section-lead">
-        CALM ships as an npm CLI. The only hard prerequisite is Node.js 18+. Java 21 and Maven are needed
-        <em>only</em> if you intend to run CALM Hub locally; the CLI itself does not need them. Start with
-        the preflight check &mdash; if a binary already shows <code>ok</code>, skip the step that installs it.
-      </p>
+    <!-- ============== 01 INTRODUCTION ============== -->
+    <section id="introduction" aria-labelledby="introduction-title">
+      <div class="container">
+        <div class="section-marker"><span>01 &middot; Introduction</span></div>
+        <div class="section-head">
+          <h2 id="introduction-title">Architecture lives where code lives.</h2>
+          <p class="lede">
+            For three decades, architecture artefacts have lived in Visio files, Confluence pages, and PowerPoint
+            decks. Implementation has lived in Git. The two have drifted apart at every release. <em>CALM closes
+            that gap</em> by treating the model itself as a versioned JSON document that travels with the source.
+          </p>
+        </div>
 
-      <ol class="steps">
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
-            <h3 class="step-title">Preflight &mdash; check what is already installed</h3>
+        <div class="prose">
+          <h3>The status quo: drift by design</h3>
+          <p style="margin-top: var(--space-3);">
+            Every Tier 1 institution has the same problem. A reference architecture is approved by a board, drawn in Visio,
+            attached to an ADR, and within two sprints it no longer reflects the deployed estate. Reviews happen in meetings
+            that produce no machine-checkable output. Compliance evidence becomes a forensic exercise &mdash; piecing
+            together screenshots, change tickets, and runbook entries to satisfy DORA Art. 6, SOX ITGC, or MAS TRM 8.4.
+          </p>
+
+          <h3 class="sub-head">The CALM answer: one document, one truth</h3>
+          <p style="margin-top: var(--space-3);">
+            A CALM <code>architecture.calm.json</code> is the contract. It binds intent (the pattern) to instantiation
+            (the deployed system) to control (the compliance posture). It is reviewable in pull requests, validatable in
+            CI, renderable as C4 diagrams, and queryable for drift. The same artefact answers <em>what is the system?</em>,
+            <em>does it meet our golden pattern?</em>, and <em>which controls apply?</em>.
+          </p>
+        </div>
+
+        <figure class="diagram-frame" aria-labelledby="d1-caption">
+          <svg viewBox="0 0 880 360" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Before and after comparison: disconnected artefacts versus a single CALM source of truth.">
+            <defs>
+              <marker id="arrow-broken" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity="0.6"/>
+              </marker>
+              <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+              </marker>
+            </defs>
+
+            <!-- Left panel: Before -->
+            <rect x="20" y="40" width="380" height="300" rx="6" fill="var(--bg)" stroke="currentColor" stroke-opacity="0.15" stroke-width="1"/>
+            <text x="36" y="68" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">BEFORE / DRIFT</text>
+
+            <!-- Disconnected artefacts -->
+            <g font-family="ui-monospace, monospace" font-size="11">
+              <rect x="48" y="92" width="138" height="48" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="60" y="113" fill="currentColor">visio.vsdx</text>
+              <text x="60" y="128" fill="currentColor" fill-opacity="0.55" font-size="10">approved 2023-Q1</text>
+
+              <rect x="234" y="92" width="138" height="48" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="246" y="113" fill="currentColor">arch.pptx</text>
+              <text x="246" y="128" fill="currentColor" fill-opacity="0.55" font-size="10">slides &middot; ARB deck</text>
+
+              <rect x="48" y="172" width="138" height="48" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="60" y="193" fill="currentColor">confluence</text>
+              <text x="60" y="208" fill="currentColor" fill-opacity="0.55" font-size="10">rev. unknown</text>
+
+              <rect x="234" y="172" width="138" height="48" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="246" y="193" fill="currentColor">main.repo</text>
+              <text x="246" y="208" fill="currentColor" fill-opacity="0.55" font-size="10">drift &gt; 18 months</text>
+            </g>
+
+            <!-- Broken connections -->
+            <g stroke="currentColor" stroke-opacity="0.45" stroke-width="1" fill="none" stroke-dasharray="4 3" marker-end="url(#arrow-broken)">
+              <path d="M186 116 L 234 116"/>
+              <path d="M186 196 L 234 196"/>
+              <path d="M117 140 L 117 172"/>
+              <path d="M303 140 L 303 172"/>
+            </g>
+
+            <!-- Compliance forensic badge -->
+            <g font-family="ui-monospace, monospace" font-size="10">
+              <rect x="48" y="252" width="324" height="62" rx="4" fill="var(--state-bad-soft)" stroke="var(--state-bad)" stroke-width="1"/>
+              <text x="62" y="274" fill="var(--state-bad)" font-size="11" letter-spacing="2" font-weight="700">COMPLIANCE / FORENSIC</text>
+              <text x="62" y="292" fill="currentColor">DORA evidence: reconstructed manually</text>
+              <text x="62" y="306" fill="currentColor" fill-opacity="0.65">Last sync: unknown</text>
+            </g>
+
+            <!-- Center transition -->
+            <g>
+              <line x1="408" y1="180" x2="468" y2="180" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-solid)"/>
+              <text x="416" y="170" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">CALM</text>
+            </g>
+
+            <!-- Right panel: After -->
+            <rect x="478" y="40" width="382" height="300" rx="6" fill="var(--bg)" stroke="var(--accent)" stroke-opacity="0.35" stroke-width="1"/>
+            <text x="494" y="68" font-family="ui-monospace, monospace" font-size="11" fill="var(--accent)" letter-spacing="2" font-weight="700">AFTER / IN SYNC</text>
+
+            <!-- Central CALM doc -->
+            <g>
+              <rect x="608" y="148" width="148" height="60" rx="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="618" y="172" font-family="ui-monospace, monospace" font-size="11" fill="var(--accent)" font-weight="700">architecture.calm.json</text>
+              <text x="618" y="190" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.7">$schema: calm/1.0</text>
+            </g>
+
+            <!-- Surrounding nodes -->
+            <g font-family="ui-monospace, monospace" font-size="11">
+              <rect x="498" y="92" width="124" height="40" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="510" y="116" fill="currentColor">pattern repo</text>
+
+              <rect x="742" y="92" width="118" height="40" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="754" y="116" fill="currentColor">CALM Hub</text>
+
+              <rect x="498" y="224" width="124" height="40" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="510" y="248" fill="currentColor">code repo</text>
+
+              <rect x="742" y="224" width="118" height="40" rx="4" fill="var(--surface)" stroke="currentColor" stroke-opacity="0.2"/>
+              <text x="754" y="248" fill="currentColor">CI / validate</text>
+            </g>
+
+            <!-- Solid connections -->
+            <g stroke="var(--accent)" stroke-width="1.25" fill="none" marker-end="url(#arrow-solid)">
+              <path d="M620 132 L 660 148"/>
+              <path d="M742 112 L 700 148"/>
+              <path d="M620 224 L 660 208"/>
+              <path d="M742 244 L 704 208"/>
+            </g>
+
+            <!-- Compliance success badge -->
+            <g font-family="ui-monospace, monospace" font-size="10">
+              <rect x="498" y="288" width="362" height="38" rx="4" fill="var(--state-ok-soft)" stroke="var(--state-ok)" stroke-width="1"/>
+              <text x="512" y="308" fill="var(--state-ok)" font-size="11" letter-spacing="2" font-weight="700">DORA / MAS TRM:</text>
+              <text x="664" y="308" fill="currentColor">controls in model &middot; auto-renderable</text>
+            </g>
+          </svg>
+          <figcaption id="d1-caption">Fig. 01 — Disconnected artefacts (left) versus CALM as the single linking spec (right).</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============== 02 CONCEPTS ============== -->
+    <section id="concepts" aria-labelledby="concepts-title">
+      <div class="container">
+        <div class="section-marker"><span>02 &middot; Core Concepts</span></div>
+        <div class="section-head">
+          <h2 id="concepts-title">The vocabulary of the spec.</h2>
+          <p class="lede">
+            CALM has a small, deliberate set of primitives. Each is a typed JSON object with a unique identifier and
+            a defined slot in the meta-schema. Learn these seven and you have read the entire spec.
+          </p>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <span class="card-tag">Node</span>
+            <h3>Typed system entity</h3>
+            <p>A service, database, network, actor, deployment target, or other addressable element. Identified by a
+              stable <code>unique-id</code> within the document.</p>
+            <ul class="field-list">
+              <li><span class="k">unique-id</span><span class="v">string</span></li>
+              <li><span class="k">node-type</span><span class="v">enum</span></li>
+              <li><span class="k">name</span><span class="v">string</span></li>
+              <li><span class="k">description</span><span class="v">string</span></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="card-tag">Relationship</span>
+            <h3>Typed edge</h3>
+            <p>Connects two or more nodes. The <code>relationship-type</code> determines semantics:
+              <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, or <em>interacts</em>.</p>
+            <ul class="field-list">
+              <li><span class="k">unique-id</span><span class="v">string</span></li>
+              <li><span class="k">relationship-type</span><span class="v">object</span></li>
+              <li><span class="k">protocol</span><span class="v">string</span></li>
+              <li><span class="k">authentication</span><span class="v">enum</span></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="card-tag">Metadata</span>
+            <h3>Extensible key/value</h3>
+            <p>The escape hatch. Anything that does not fit the core schema &mdash; cost centre, data classification,
+              business owner &mdash; lives here as structured key/value pairs.</p>
+            <ul class="field-list">
+              <li><span class="k">free-form</span><span class="v">object[]</span></li>
+              <li><span class="k">attached to</span><span class="v">any node</span></li>
+              <li><span class="k">validated by</span><span class="v">pattern</span></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="card-tag">Pattern</span>
+            <h3>Reusable template</h3>
+            <p>A pattern is a JSON Schema that describes a class of valid architectures &mdash; for example, a golden
+              three-tier web app or an event-driven microservice topology. <em>Patterns are the unit of reuse.</em></p>
+            <ul class="field-list">
+              <li><span class="k">$schema</span><span class="v">meta/calm</span></li>
+              <li><span class="k">defines</span><span class="v">node + rel types</span></li>
+              <li><span class="k">enforces</span><span class="v">controls</span></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="card-tag">Architecture</span>
+            <h3>Concrete instantiation</h3>
+            <p>An architecture document is a specific, validated <em>instance</em> of a pattern. It contains the same
+              nodes and relationships, populated with real names, owners, and runtime details.</p>
+            <ul class="field-list">
+              <li><span class="k">validates against</span><span class="v">pattern</span></li>
+              <li><span class="k">populated by</span><span class="v">team</span></li>
+              <li><span class="k">deployed as</span><span class="v">system</span></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="card-tag">Control</span>
+            <h3>Compliance / security check</h3>
+            <p>Declarative requirements attached to nodes or relationships. Examples: &ldquo;all relationships entering
+              PCI scope must use mTLS&rdquo;, &ldquo;every persistent store must declare encryption at rest&rdquo;.</p>
+            <ul class="field-list">
+              <li><span class="k">control-id</span><span class="v">string</span></li>
+              <li><span class="k">requirement</span><span class="v">object</span></li>
+              <li><span class="k">evidence</span><span class="v">link</span></li>
+            </ul>
+          </article>
+
+          <article class="card card-span-full">
+            <span class="card-tag">Flow</span>
+            <h3>Ordered sequence of interactions</h3>
+            <p>A flow describes a business or data path across nodes &mdash; for example, the steps to register an
+              attendee, settle a trade, or process an instant payment. Flows reference existing nodes and relationships
+              in order, so they remain consistent with the structural model.</p>
+          </article>
+        </div>
+
+        <h3 class="sub-head">A minimal model, visualised</h3>
+        <p class="prose body-text" style="color: var(--text);">
+          Three nodes, two relationships, one control. The same model is renderable as a C4 container diagram or as a
+          Mermaid graph &mdash; CALM is the source, the diagrams are views.
+        </p>
+
+        <figure class="diagram-frame" aria-labelledby="d2-caption">
+          <svg viewBox="0 0 880 340" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Sample CALM model with three nodes (web app, API, database), two relationships and a control attached.">
+            <defs>
+              <marker id="arrow-rel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+              </marker>
+            </defs>
+
+            <!-- Pattern frame (dashed) -->
+            <rect x="20" y="20" width="840" height="300" rx="8" fill="transparent" stroke="currentColor" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="3 5"/>
+            <text x="36" y="44" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">PATTERN: three-tier-web-app</text>
+            <text x="724" y="44" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">v1.0-rc2</text>
+
+            <!-- Node 1: web-app -->
+            <g>
+              <rect x="60" y="120" width="190" height="110" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="76" y="146" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / webclient</text>
+              <text x="76" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">web-app</text>
+              <text x="76" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: conference-web</text>
+              <text x="76" y="212" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">port: 443</text>
+            </g>
+
+            <!-- Node 2: api -->
+            <g>
+              <rect x="345" y="120" width="190" height="110" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="361" y="146" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / service</text>
+              <text x="361" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">api</text>
+              <text x="361" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: conference-api</text>
+              <text x="361" y="212" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">port: 8080</text>
+            </g>
+
+            <!-- Node 3: database -->
+            <g>
+              <rect x="630" y="120" width="190" height="110" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="646" y="146" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / database</text>
+              <text x="646" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">attendee-db</text>
+              <text x="646" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: attendee-store</text>
+              <text x="646" y="212" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">port: 5432</text>
+            </g>
+
+            <!-- Relationships -->
+            <g>
+              <line x1="250" y1="175" x2="345" y2="175" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-rel)"/>
+              <text x="265" y="166" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">connects &middot; HTTPS</text>
+              <text x="265" y="192" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.55">rel: web-to-api</text>
+            </g>
+            <g>
+              <line x1="535" y1="175" x2="630" y2="175" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-rel)"/>
+              <text x="550" y="166" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">connects &middot; JDBC</text>
+              <text x="550" y="192" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.55">rel: api-to-db</text>
+            </g>
+
+            <!-- Control -->
+            <g>
+              <rect x="320" y="262" width="240" height="44" rx="5" fill="var(--state-warn-soft)" stroke="var(--state-warn)" stroke-width="1"/>
+              <text x="336" y="280" font-family="ui-monospace, monospace" font-size="10" fill="var(--state-warn)" letter-spacing="2" font-weight="700">CONTROL / C-001</text>
+              <text x="336" y="296" font-family="ui-monospace, monospace" font-size="11" fill="currentColor">mTLS + SPIFFE identity required</text>
+              <line x1="440" y1="230" x2="440" y2="262" stroke="var(--state-warn)" stroke-width="1" stroke-dasharray="2 3"/>
+            </g>
+          </svg>
+          <figcaption id="d2-caption">Fig. 02 — A minimal CALM model: three nodes, two relationships, one control. The dashed frame is the pattern; the populated boxes are the architecture.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============== 03 WHY ============== -->
+    <section id="why" aria-labelledby="why-title">
+      <div class="container">
+        <div class="section-marker"><span>03 &middot; Why It Matters</span></div>
+        <div class="section-head">
+          <h2 id="why-title">For Tier 1 financial institutions, this is overdue.</h2>
+          <p class="lede">
+            FINOS members did not open-source CALM to make documentation prettier. They open-sourced it because
+            regulators are asking the same questions in five jurisdictions, and there is no scalable way to answer
+            them with PowerPoint.
+          </p>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="card">
+            <span class="card-tag">Compliance</span>
+            <h3>Controls become first-class</h3>
+            <p>Attach DORA Art. 6, PCI-DSS 4.0 8.3, and SWIFT CSCF 2.4A directly to the relationships they govern.
+              <em>Evidence is queryable instead of forensic.</em></p>
+          </article>
+          <article class="card">
+            <span class="card-tag">Drift</span>
+            <h3>Reality vs. intent, diffed</h3>
+            <p>A nightly job introspects the cluster (or Terraform state, or cloud APIs) and renders the live
+              topology as CALM. Diff against the approved document &rarr; drift PR opened automatically.</p>
+          </article>
+          <article class="card">
+            <span class="card-tag">Review</span>
+            <h3>Architecture review = PR review</h3>
+            <p>Architecture changes are GitHub pull requests on the CALM document. Reviewers see the JSON diff,
+              the rendered C4 view, and the controls delta in the same place they review code.</p>
+          </article>
+          <article class="card">
+            <span class="card-tag">Reuse</span>
+            <h3>Golden patterns enforced at PR time</h3>
+            <p>A new service must validate against the approved pattern before merge. The control plane fails the
+              build &mdash; it does not wait for the next ARB. By the time a system reaches production review,
+              it has already been validated.</p>
+          </article>
+        </div>
+
+        <h3 class="sub-head">The CI/CD checkpoint</h3>
+        <p class="prose body-text" style="color: var(--text);">
+          CALM validation drops into the same pipeline as your unit tests and SAST scans. A pull request that breaks
+          the pattern fails at the same gate as a pull request that breaks a test.
+        </p>
+
+        <figure class="diagram-frame" aria-labelledby="d3-caption">
+          <svg viewBox="0 0 920 220" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="CI/CD pipeline diagram showing CALM validate as a gate alongside unit tests and security scans.">
+            <text x="20" y="36" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">CI PIPELINE / on: pull_request</text>
+
+            <!-- Pipeline track -->
+            <line x1="40" y1="110" x2="900" y2="110" stroke="currentColor" stroke-opacity="0.2" stroke-width="1"/>
+
+            <g font-family="ui-monospace, monospace" font-size="11">
+              <!-- commit -->
+              <circle cx="80" cy="110" r="6" fill="var(--accent)"/>
+              <text x="62" y="84" fill="currentColor">commit</text>
+              <text x="58" y="140" fill="currentColor" fill-opacity="0.55" font-size="10">push</text>
+
+              <!-- lint -->
+              <circle cx="190" cy="110" r="6" fill="var(--accent)"/>
+              <text x="178" y="84" fill="currentColor">lint</text>
+              <text x="160" y="140" fill="currentColor" fill-opacity="0.55" font-size="10">eslint &middot; rufo</text>
+
+              <!-- unit tests -->
+              <circle cx="320" cy="110" r="6" fill="var(--accent)"/>
+              <text x="296" y="84" fill="currentColor">unit tests</text>
+              <text x="288" y="140" fill="currentColor" fill-opacity="0.55" font-size="10">jest &middot; pytest</text>
+
+              <!-- CALM validate (highlighted) -->
+              <rect x="430" y="84" width="120" height="52" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+              <circle cx="490" cy="110" r="6" fill="var(--accent)"/>
+              <text x="445" y="104" fill="var(--accent)" font-weight="700">calm validate</text>
+              <text x="445" y="124" fill="currentColor" font-size="10">pattern + controls</text>
+              <text x="445" y="158" fill="var(--accent)" font-size="10" letter-spacing="2" font-weight="700">NEW GATE</text>
+
+              <!-- SAST -->
+              <circle cx="640" cy="110" r="6" fill="var(--accent)"/>
+              <text x="628" y="84" fill="currentColor">sast</text>
+              <text x="608" y="140" fill="currentColor" fill-opacity="0.55" font-size="10">semgrep &middot; codeql</text>
+
+              <!-- build -->
+              <circle cx="760" cy="110" r="6" fill="var(--accent)"/>
+              <text x="746" y="84" fill="currentColor">build</text>
+              <text x="734" y="140" fill="currentColor" fill-opacity="0.55" font-size="10">image + SBOM</text>
+
+              <!-- deploy -->
+              <circle cx="870" cy="110" r="6" fill="var(--state-ok)"/>
+              <text x="848" y="84" fill="var(--state-ok)" font-weight="700">deploy</text>
+              <text x="842" y="140" fill="currentColor" fill-opacity="0.55" font-size="10">argo / flux</text>
+            </g>
+
+            <!-- Output indicators -->
+            <g font-family="ui-monospace, monospace" font-size="10">
+              <text x="20" y="194" fill="currentColor" fill-opacity="0.55" letter-spacing="2" font-weight="700">FAIL FAST:</text>
+              <text x="118" y="194" fill="currentColor">non-conforming patterns blocked at PR time, before image build.</text>
+            </g>
+          </svg>
+          <figcaption id="d3-caption">Fig. 03 — <code>calm validate</code> sits alongside unit tests and SAST as a first-class CI gate.</figcaption>
+        </figure>
+
+        <aside class="callout">
+          <span class="callout-label">Regulatory</span>
+          <div class="callout-body">
+            <p>
+              Controls captured in CALM map cleanly to the evidence requirements of DORA (EU), MAS TRM (Singapore),
+              APRA CPS 234 (Australia), HKMA SA-2 (Hong Kong), and OSFI B-13 (Canada). <strong>The model is the audit
+              trail.</strong> Verify against <a href="https://calm.finos.org">calm.finos.org</a> for the current set
+              of reference control packs.
+            </p>
           </div>
-          <div class="step-body">
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============== 04 INSTALL ============== -->
+    <section id="install" aria-labelledby="install-title">
+      <div class="container">
+        <div class="section-marker"><span>04 &middot; Installation</span></div>
+        <div class="section-head">
+          <h2 id="install-title">Install on Ubuntu 26.04 LTS.</h2>
+          <p class="lede">
+            CALM ships as an npm CLI. The only hard prerequisite is Node.js 18+. Java 21 and Maven are needed
+            <em>only</em> if you intend to run CALM Hub locally; the CLI itself does not need them. Start with the
+            preflight check &mdash; if a binary already shows <code>ok</code>, skip the step that installs it.
+          </p>
+        </div>
+
+        <ol class="steps">
+          <li class="step">
+            <h3 class="step-title">Preflight — check what is already installed</h3>
             <p>
               Run the loop below once. It probes every binary the rest of this section installs and prints
               <code>ok</code> with a version or <code>missing</code>. Each subsequent step is safe to skip if its
@@ -1523,7 +1298,7 @@ for cmd in curl gpg make git node npm calm java mvn; do
   fi
 done</pre>
             </div>
-            <p style="margin-top: 14px;">Typical output on a fresh Ubuntu 26.04 box:</p>
+            <p>Typical output on a fresh Ubuntu 26.04 box:</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">output</span><button class="code-copy" type="button">Copy</button></div>
 <pre><span class="c-ok">  ok       curl    curl 8.5.0 (x86_64-pc-linux-gnu)</span>
@@ -1536,27 +1311,24 @@ done</pre>
 <span class="c-out">  missing  java    -</span>
 <span class="c-out">  missing  mvn     -</span></pre>
             </div>
-            <div class="callout ok" style="margin-top: 14px;">
+            <aside class="callout ok">
               <span class="callout-label">How to read it</span>
-              <p>
-                <strong>Step 02</strong> covers <code>curl</code>, <code>gpg</code>, <code>make</code> (from
-                <code>build-essential</code>), and <code>git</code>. <strong>Step 03</strong> installs
-                <code>node</code> and <code>npm</code>. <strong>Step 05</strong> installs <code>calm</code>.
-                <strong>Step 07</strong> &mdash; optional &mdash; installs <code>java</code> and <code>mvn</code>.
-                If a row already says <code>ok</code>, jump past the step that would install it. Also re-check the
-                version: Node must be 18+ and Java 21+ for CALM Hub; if an older version is on PATH, treat the
-                row as missing and reinstall.
-              </p>
-            </div>
-          </div>
-        </li>
+              <div class="callout-body">
+                <p>
+                  <strong>Step 02</strong> covers <code>curl</code>, <code>gpg</code>, <code>make</code> (from
+                  <code>build-essential</code>), and <code>git</code>. <strong>Step 03</strong> installs <code>node</code>
+                  and <code>npm</code>. <strong>Step 05</strong> installs <code>calm</code>. <strong>Step 07</strong>
+                  &mdash; optional &mdash; installs <code>java</code> and <code>mvn</code>. If a row already says
+                  <code>ok</code>, jump past the step that would install it. Also re-check the version: Node must be
+                  18+ and Java 21+ for CALM Hub; if an older version is on PATH, treat the row as missing and
+                  reinstall.
+                </p>
+              </div>
+            </aside>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Update apt and install prerequisites</h3>
-          </div>
-          <div class="step-body">
             <p>
               Refresh the package index and install the small set of tools we need to bootstrap Node. Skip this step
               if the preflight reported <code>ok</code> for <code>curl</code>, <code>gpg</code>, <code>make</code>,
@@ -1568,15 +1340,10 @@ done</pre>
 sudo apt update
 sudo apt install -y curl ca-certificates gnupg build-essential git</pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Install Node.js 22 from NodeSource</h3>
-          </div>
-          <div class="step-body">
             <p>
               Ubuntu 26.04 ships a recent Node in <code>apt</code>, but it tracks Debian&rsquo;s snapshot and can
               drift from the active LTS. Use the NodeSource repository to pin Node 22.x &mdash; the CLI requires
@@ -1590,15 +1357,10 @@ sudo apt install -y curl ca-certificates gnupg build-essential git</pre>
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs</pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Verify Node and npm</h3>
-          </div>
-          <div class="step-body">
             <p>Confirm both binaries are on PATH and reporting a version on the 22.x line.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
@@ -1607,40 +1369,33 @@ sudo apt install -y nodejs</pre>
 npm --version
 <span class="c-out">10.9.2</span></pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Install the CALM CLI globally</h3>
-          </div>
-          <div class="step-body">
             <p>
-              Pull the official package from npm. The binary is exposed as <code>calm</code>. Skip if the
-              preflight already reported <code>ok</code> for <code>calm</code> &mdash; re-run only to upgrade.
+              Pull the official package from npm. The binary is exposed as <code>calm</code>. Skip if the preflight
+              already reported <code>ok</code> for <code>calm</code> &mdash; re-run only to upgrade.
             </p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>npm install -g @finos/calm-cli</pre>
             </div>
-            <div class="callout warn" style="margin-top: 14px;">
+            <aside class="callout warn">
               <span class="callout-label">Heads-up</span>
-              <p>
-                If you see <code>EACCES</code> during the global install, do <strong>not</strong> use <code>sudo npm</code>.
-                Install Node via <code>nvm</code> instead, or set an npm user prefix
-                (<code>npm config set prefix ~/.npm-global</code> and add <code>$HOME/.npm-global/bin</code> to <code>PATH</code>).
-              </p>
-            </div>
-          </div>
-        </li>
+              <div class="callout-body">
+                <p>
+                  If you see <code>EACCES</code> during the global install, do <strong>not</strong> use
+                  <code>sudo npm</code>. Install Node via <code>nvm</code> instead, or set an npm user prefix
+                  (<code>npm config set prefix ~/.npm-global</code> and add <code>$HOME/.npm-global/bin</code>
+                  to <code>PATH</code>).
+                </p>
+              </div>
+            </aside>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Verify the CLI</h3>
-          </div>
-          <div class="step-body">
             <p>Print the version and the top-level command list.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
@@ -1654,15 +1409,10 @@ calm --help
 <span class="c-out">  docify     Generate a documentation site from an architecture</span>
 <span class="c-out">  init-ai    Bootstrap AI-assistant config (Claude, Copilot, Kiro)</span></pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
-            <h3 class="step-title">Optional &mdash; install Java 21 and Maven for CALM Hub</h3>
-          </div>
-          <div class="step-body">
+          <li class="step">
+            <h3 class="step-title">Optional — install Java 21 and Maven for CALM Hub</h3>
             <p>
               Only required if you intend to run the CALM Hub registry/visualisation server locally. It is a Quarkus
               application and will not start without Java 21+ and Maven 3.8.6+. Skip if the preflight reported
@@ -1674,15 +1424,10 @@ calm --help
 java --version
 mvn --version</pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
-            <h3 class="step-title">Optional &mdash; clone the reference repo for example patterns</h3>
-          </div>
-          <div class="step-body">
+          <li class="step">
+            <h3 class="step-title">Optional — clone the reference repo for example patterns</h3>
             <p>The FINOS monorepo carries the spec, reference patterns, and the conference-signup tutorial used below.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
@@ -1691,59 +1436,47 @@ cd architecture-as-code/calm/getting-started
 ls -1 *.json
 <span class="c-out">conference-signup.pattern.json</span></pre>
             </div>
-          </div>
-        </li>
-      </ol>
+          </li>
+        </ol>
 
-      <h3 style="margin-top: 40px;">Common installation issues</h3>
-      <div class="callout warn">
-        <span class="callout-label">Troubleshoot</span>
-        <p>
-          <strong><code>EACCES</code> on <code>npm install -g</code>:</strong> use <code>nvm</code> or set
-          an npm user prefix (above). Never <code>sudo npm</code> &mdash; you will fight Debian&rsquo;s
-          RECORD-less system packages every upgrade.
-        </p>
-        <p>
-          <strong><code>calm: command not found</code>:</strong> run <code>npm config get prefix</code> and confirm
-          that <code>&lt;prefix&gt;/bin</code> is on <code>PATH</code>. With a user prefix, add
-          <code>export PATH="$HOME/.npm-global/bin:$PATH"</code> to <code>~/.bashrc</code>.
-        </p>
-        <p>
-          <strong>Node version mismatch:</strong> the CLI expects Node 18+. If the apt-installed Node is older,
-          uninstall it and use NodeSource as above, or switch to <code>nvm install 22 &amp;&amp; nvm use 22</code>.
-        </p>
-        <p>
-          <strong>Behind a corporate proxy:</strong> set <code>HTTPS_PROXY</code>, <code>HTTP_PROXY</code>, and
-          <code>NO_PROXY</code> in the shell before <code>npm install</code>. For npm itself, also configure
-          <code>npm config set proxy</code> and <code>npm config set https-proxy</code>.
-        </p>
+        <h3 class="sub-head">Common installation issues</h3>
+        <aside class="callout warn">
+          <span class="callout-label">Troubleshoot</span>
+          <div class="callout-body">
+            <p><strong><code>EACCES</code> on <code>npm install -g</code>:</strong> use <code>nvm</code> or set an npm
+              user prefix (above). Never <code>sudo npm</code> &mdash; you will fight Debian&rsquo;s RECORD-less system
+              packages every upgrade.</p>
+            <p><strong><code>calm: command not found</code>:</strong> run <code>npm config get prefix</code> and confirm
+              that <code>&lt;prefix&gt;/bin</code> is on <code>PATH</code>. With a user prefix, add
+              <code>export PATH="$HOME/.npm-global/bin:$PATH"</code> to <code>~/.bashrc</code>.</p>
+            <p><strong>Node version mismatch:</strong> the CLI expects Node 18+. If the apt-installed Node is older,
+              uninstall it and use NodeSource as above, or switch to
+              <code>nvm install 22 &amp;&amp; nvm use 22</code>.</p>
+            <p><strong>Behind a corporate proxy:</strong> set <code>HTTPS_PROXY</code>, <code>HTTP_PROXY</code>, and
+              <code>NO_PROXY</code> in the shell before <code>npm install</code>. For npm itself, also configure
+              <code>npm config set proxy</code> and <code>npm config set https-proxy</code>.</p>
+          </div>
+        </aside>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <hr class="section-divider">
+    <!-- ============== 05 TUTORIAL ============== -->
+    <section id="tutorial" aria-labelledby="tutorial-title">
+      <div class="container">
+        <div class="section-marker"><span>05 &middot; Hands-On Tutorial</span></div>
+        <div class="section-head">
+          <h2 id="tutorial-title">Conference signup, end to end.</h2>
+          <p class="lede">
+            Take the official getting-started pattern, instantiate it as an architecture, validate, visualise, and
+            render a documentation site. Five commands, five minutes &mdash; the same loop you will run in CI.
+          </p>
+        </div>
 
-  <!-- ============== 05 TUTORIAL ============== -->
-  <section id="tutorial" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 05 &mdash; Hands-On Tutorial</span></div>
-      <h2 class="section-title">Conference signup, end to end.</h2>
-      <p class="section-lead">
-        Take the official getting-started pattern, instantiate it as an architecture, validate, visualise, and
-        render a documentation site. Five commands, five minutes &mdash; the same loop you will run in CI.
-      </p>
-
-      <ol class="steps">
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+        <ol class="steps">
+          <li class="step">
             <h3 class="step-title">Locate the pattern</h3>
-          </div>
-          <div class="step-body">
-            <p>
-              The FINOS monorepo bundles a reference pattern for a simple attendee-registration system.
-              The pattern is a JSON Schema describing the shape of a valid architecture.
-            </p>
+            <p>The FINOS monorepo bundles a reference pattern for a simple attendee-registration system. The pattern
+              is a JSON Schema describing the shape of a valid architecture.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>cd architecture-as-code/calm/getting-started
@@ -1751,19 +1484,12 @@ ls -1
 <span class="c-out">conference-signup.pattern.json</span>
 <span class="c-out">README.md</span></pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Generate a concrete architecture</h3>
-          </div>
-          <div class="step-body">
-            <p>
-              <code>calm generate</code> walks the pattern and produces a stub architecture document. The output is
-              your starting point &mdash; you then fill in the populated values (real ids, owners, hostnames).
-            </p>
+            <p><code>calm generate</code> walks the pattern and produces a stub architecture document. The output is
+              your starting point &mdash; you then fill in the populated values (real ids, owners, hostnames).</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>calm generate \
@@ -1774,19 +1500,12 @@ ls -1
 <span class="c-out">[calm] resolved 3 nodes, 2 relationships</span>
 <span class="c-ok">[calm] wrote: conference-signup.arch.json</span></pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Validate</h3>
-          </div>
-          <div class="step-body">
-            <p>
-              <code>calm validate</code> checks the architecture against the pattern (schema conformance) and against
-              any attached controls. In CI this is the failing gate.
-            </p>
+            <p><code>calm validate</code> checks the architecture against the pattern (schema conformance) and against
+              any attached controls. In CI this is the failing gate.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>calm validate \
@@ -1799,20 +1518,14 @@ ls -1
 <span class="c-out">[calm] controls                ...... </span><span class="c-ok">OK</span>
 <span class="c-ok">[calm] PASS</span></pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Visualise with CALM Hub</h3>
-          </div>
-          <div class="step-body">
             <p>
               CALM Hub is the FINOS-hosted (and self-hostable) registry and visualisation server. Upload the
-              architecture and you get a rendered topology, control overlay, and shareable URL.
-              Either upload to <a href="https://hub.finos.org" rel="noopener">hub.finos.org</a> or run your own
-              instance with Java 21 + Maven.
+              architecture and you get a rendered topology, control overlay, and shareable URL. Either upload to
+              <a href="https://hub.finos.org" rel="noopener">hub.finos.org</a> or run your own instance with Java 21 + Maven.
             </p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
@@ -1821,19 +1534,12 @@ cd calm-hub
 mvn quarkus:dev
 <span class="c-out">  Quarkus 3.x dev mode listening on http://localhost:8080</span></pre>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <li class="step">
-          <div class="step-head">
-            <span class="step-num"></span>
+          <li class="step">
             <h3 class="step-title">Render a documentation site</h3>
-          </div>
-          <div class="step-body">
-            <p>
-              <code>calm docify</code> generates a static site from an architecture &mdash; nodes, relationships,
-              controls, and embedded diagrams. The output is a folder you can publish to GitHub Pages.
-            </p>
+            <p><code>calm docify</code> generates a static site from an architecture &mdash; nodes, relationships,
+              controls, and embedded diagrams. The output is a folder you can publish to GitHub Pages.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>calm docify \
@@ -1843,18 +1549,17 @@ mvn quarkus:dev
 <span class="c-ok">[calm] wrote 12 files to ./website</span>
 <span class="c-out">[calm] open ./website/index.html</span></pre>
             </div>
-          </div>
-        </li>
-      </ol>
+          </li>
+        </ol>
 
-      <h3 style="margin-top: 40px;">What the architecture document looks like</h3>
-      <p>
-        Truncated to nodes and relationships for clarity &mdash; the full document also carries metadata, controls,
-        and flow definitions. The <code>$schema</code> URL pins the meta-schema version used to validate.
-      </p>
+        <h3 class="sub-head">What the architecture document looks like</h3>
+        <p class="prose body-text" style="color: var(--text);">
+          Truncated to nodes and relationships for clarity &mdash; the full document also carries metadata, controls,
+          and flow definitions. The <code>$schema</code> URL pins the meta-schema version used to validate.
+        </p>
 
-      <div class="code-block">
-        <div class="code-head"><span class="code-lang">conference-signup.arch.json</span><button class="code-copy" type="button">Copy</button></div>
+        <div class="code-block">
+          <div class="code-head"><span class="code-lang">conference-signup.arch.json</span><button class="code-copy" type="button">Copy</button></div>
 <pre>{
   <span class="c-attr">"$schema"</span>: <span class="c-str">"https://calm.finos.org/release/1.0/meta/calm.json"</span>,
   <span class="c-attr">"name"</span>:    <span class="c-str">"Conference Signup"</span>,
@@ -1902,427 +1607,401 @@ mvn quarkus:dev
     }
   ]
 }</pre>
+        </div>
+
+        <aside class="callout">
+          <span class="callout-label">Note</span>
+          <div class="callout-body">
+            <p>Exact <code>$schema</code> path and the precise shape of <code>relationship-type</code> may evolve
+              between minor releases. <em>Verify against calm.finos.org</em> for the version pinned to your install.</p>
+          </div>
+        </aside>
+
+        <h3 class="sub-head">The resulting architecture</h3>
+        <figure class="diagram-frame" aria-labelledby="d4-caption">
+          <svg viewBox="0 0 900 420" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Conference signup architecture: attendee actor, identity provider, web UI, API, and database with labelled relationships.">
+            <defs>
+              <marker id="arrow-arch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+              </marker>
+              <marker id="arrow-arch-warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--state-warn)"/>
+              </marker>
+            </defs>
+
+            <text x="20" y="36" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">ARCHITECTURE: conference-signup &middot; v1.0</text>
+
+            <!-- Actor: attendee -->
+            <g>
+              <circle cx="78" cy="220" r="28" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <circle cx="78" cy="210" r="7" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+              <path d="M62 234 q16 -10 32 0" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="42" y="276" font-family="Noto Sans, sans-serif" font-size="13" font-weight="700" fill="currentColor">attendee</text>
+              <text x="56" y="294" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.65">actor</text>
+            </g>
+
+            <!-- Identity Provider -->
+            <g>
+              <rect x="380" y="60" width="170" height="80" rx="6" fill="var(--state-warn-soft)" stroke="var(--state-warn)" stroke-width="1.5"/>
+              <text x="396" y="84" font-family="ui-monospace, monospace" font-size="10" fill="var(--state-warn)" letter-spacing="2" font-weight="700">NODE / idp</text>
+              <text x="396" y="106" font-family="Noto Sans, sans-serif" font-size="14" font-weight="700" fill="currentColor">Identity Provider</text>
+              <text x="396" y="124" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">OIDC / FAPI 2.0</text>
+            </g>
+
+            <!-- Web UI -->
+            <g>
+              <rect x="190" y="180" width="170" height="86" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="206" y="204" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / webclient</text>
+              <text x="206" y="226" font-family="Noto Sans, sans-serif" font-size="14" font-weight="700" fill="currentColor">Conference Web UI</text>
+              <text x="206" y="244" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">id: conference-web</text>
+              <text x="206" y="258" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">port: 443 / TLS 1.3</text>
+            </g>
+
+            <!-- API -->
+            <g>
+              <rect x="430" y="180" width="170" height="86" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="446" y="204" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / service</text>
+              <text x="446" y="226" font-family="Noto Sans, sans-serif" font-size="14" font-weight="700" fill="currentColor">Conference API</text>
+              <text x="446" y="244" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">id: conference-api</text>
+              <text x="446" y="258" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">port: 8080 / mTLS</text>
+            </g>
+
+            <!-- Database -->
+            <g>
+              <rect x="670" y="180" width="170" height="86" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="686" y="204" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / database</text>
+              <text x="686" y="226" font-family="Noto Sans, sans-serif" font-size="14" font-weight="700" fill="currentColor">Attendee Store</text>
+              <text x="686" y="244" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">id: attendee-store</text>
+              <text x="686" y="258" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">port: 5432 / TLS</text>
+            </g>
+
+            <!-- Edges -->
+            <g>
+              <line x1="106" y1="220" x2="190" y2="220" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-arch)"/>
+              <text x="118" y="210" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">HTTPS</text>
+
+              <line x1="360" y1="222" x2="430" y2="222" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-arch)"/>
+              <text x="368" y="212" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">REST</text>
+
+              <line x1="600" y1="222" x2="670" y2="222" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow-arch)"/>
+              <text x="608" y="212" font-family="ui-monospace, monospace" font-size="10" fill="currentColor" fill-opacity="0.75">JDBC</text>
+
+              <line x1="320" y1="180" x2="430" y2="140" stroke="var(--state-warn)" stroke-width="1.25" marker-end="url(#arrow-arch-warn)"/>
+              <text x="358" y="148" font-family="ui-monospace, monospace" font-size="10" fill="var(--state-warn)">OIDC</text>
+
+              <line x1="500" y1="180" x2="486" y2="140" stroke="var(--state-warn)" stroke-width="1.25" marker-end="url(#arrow-arch-warn)"/>
+            </g>
+
+            <!-- Control band -->
+            <rect x="190" y="320" width="650" height="60" rx="6" fill="var(--state-warn-soft)" stroke="var(--state-warn)" stroke-width="1"/>
+            <text x="206" y="342" font-family="ui-monospace, monospace" font-size="10" fill="var(--state-warn)" letter-spacing="2" font-weight="700">CONTROL PACK / pci-dss-4 + dora-art-6</text>
+            <text x="206" y="362" font-family="ui-monospace, monospace" font-size="11" fill="currentColor">C-001 mTLS east-west &middot; C-002 OIDC + FAPI 2.0 north-south &middot; C-003 encryption at rest</text>
+          </svg>
+          <figcaption id="d4-caption">Fig. 04 — The conference-signup architecture: actor, IdP, web UI, API, database, with a control pack spanning the deployment.</figcaption>
+        </figure>
       </div>
+    </section>
 
-      <div class="callout">
-        <span class="callout-label">Note</span>
-        <p>
-          Exact <code>$schema</code> path and the precise shape of <code>relationship-type</code> may evolve
-          between minor releases. <em>Verify against calm.finos.org</em> for the version pinned to your install.
-        </p>
+    <!-- ============== 06 GLOSSARY ============== -->
+    <section id="glossary" aria-labelledby="glossary-title">
+      <div class="container">
+        <div class="section-marker"><span>06 &middot; Glossary</span></div>
+        <div class="section-head">
+          <h2 id="glossary-title">Terms, defined.</h2>
+          <p class="lede">A reference list of CALM-adjacent terms. Skim if you are already fluent; bookmark if you are not.</p>
+        </div>
+
+        <dl class="glossary">
+          <dt>Architecture as Code <span class="gloss-abbr">AasC</span></dt>
+          <dd>A practice in which architecture artefacts are stored as version-controlled, machine-readable documents alongside the code they describe. CALM is its FINOS-stewarded reference specification.</dd>
+
+          <dt>CALM <span class="gloss-abbr">noun</span></dt>
+          <dd>Common Architecture Language Model. A FINOS open-source meta-schema (JSON) for describing systems as nodes, relationships, metadata, controls, and flows. v1.0 released August 2025.</dd>
+
+          <dt>FINOS <span class="gloss-abbr">org</span></dt>
+          <dd>The Fintech Open Source Foundation, a Linux Foundation project that stewards open-source software for financial services. Host of CALM and many other capital-markets projects.</dd>
+
+          <dt>AasC Community <span class="gloss-abbr">group</span></dt>
+          <dd>The FINOS working group that develops CALM. Originated from Morgan Stanley&rsquo;s internal architecture-as-code effort and open-sourced through FINOS.</dd>
+
+          <dt>Node <span class="gloss-abbr">primitive</span></dt>
+          <dd>A typed entity in the model &mdash; service, database, network, actor, deployment target, or other. Identified by a stable <code>unique-id</code>.</dd>
+
+          <dt>Relationship <span class="gloss-abbr">primitive</span></dt>
+          <dd>A typed edge between nodes. Sub-types include <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, and <em>interacts</em>.</dd>
+
+          <dt>Metadata <span class="gloss-abbr">primitive</span></dt>
+          <dd>Free-form key/value extension data attached to any node or relationship. The intended home for cost-centre, data-classification, and similar enterprise concerns.</dd>
+
+          <dt>Pattern <span class="gloss-abbr">noun</span></dt>
+          <dd>A reusable JSON Schema describing a class of valid architectures. The unit of reuse in CALM &mdash; e.g. a golden three-tier web app or event-driven microservice topology.</dd>
+
+          <dt>Architecture <span class="gloss-abbr">instance</span></dt>
+          <dd>A concrete JSON document that validates against a pattern and populates it with real ids, names, owners, and runtime detail. The deployable contract.</dd>
+
+          <dt>Control <span class="gloss-abbr">primitive</span></dt>
+          <dd>A declarative compliance or security requirement attached to a node or relationship. Examples: mTLS required, encryption at rest mandatory, data residency constraints.</dd>
+
+          <dt>Flow <span class="gloss-abbr">primitive</span></dt>
+          <dd>An ordered sequence of node interactions representing a business or data path &mdash; trade settlement, payment authorisation, attendee registration.</dd>
+
+          <dt>JSON Meta Schema <span class="gloss-abbr">artifact</span></dt>
+          <dd>The CALM specification itself, expressed as a JSON Schema document. Every CALM pattern and architecture validates against it.</dd>
+
+          <dt>CALM CLI <span class="gloss-abbr">tool</span></dt>
+          <dd>The command-line interface (<code>@finos/calm-cli</code> on npm) for generating, validating, templating, and documenting CALM documents.</dd>
+
+          <dt>CALM Hub <span class="gloss-abbr">service</span></dt>
+          <dd>The FINOS registry and visualisation server for CALM patterns and architectures. A Quarkus application, self-hostable or FINOS-hosted.</dd>
+
+          <dt>docify <span class="gloss-abbr">command</span></dt>
+          <dd>CLI sub-command that renders a CALM architecture into a static documentation website.</dd>
+
+          <dt>generate <span class="gloss-abbr">command</span></dt>
+          <dd>CLI sub-command that walks a pattern and produces a stub architecture document ready to be populated.</dd>
+
+          <dt>validate <span class="gloss-abbr">command</span></dt>
+          <dd>CLI sub-command that checks an architecture against its pattern and any attached controls. The CI gate.</dd>
+
+          <dt>init-ai <span class="gloss-abbr">command</span></dt>
+          <dd>CLI sub-command that drops Claude Code / Copilot / Kiro assistant configuration into a repo, so editors can author CALM documents with model assistance.</dd>
+
+          <dt>Drift detection <span class="gloss-abbr">practice</span></dt>
+          <dd>Periodically rendering the live system as CALM and diffing it against the approved CALM document. Surfaces unintended divergence as a PR.</dd>
+
+          <dt>SPIFFE <span class="gloss-abbr">cross-ref</span></dt>
+          <dd>Secure Production Identity Framework For Everyone. A workload identity standard frequently referenced from CALM controls when describing east-west authentication.</dd>
+        </dl>
       </div>
+    </section>
 
-      <h3 style="margin-top: 40px;">The resulting architecture</h3>
-      <div class="diagram" aria-labelledby="d4-caption">
-        <svg viewBox="0 0 900 420" role="img" aria-label="Conference signup architecture: attendee actor, identity provider, web UI, API, and database with labelled relationships.">
-          <defs>
-            <marker id="arrow-arch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#4dabf7"/>
-            </marker>
-            <marker id="arrow-arch-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#ffd43b"/>
-            </marker>
-          </defs>
+    <!-- ============== 07 TAKEAWAYS ============== -->
+    <section id="takeaways" aria-labelledby="takeaways-title">
+      <div class="container">
+        <div class="section-marker"><span>07 &middot; Takeaways</span></div>
+        <div class="section-head">
+          <h2 id="takeaways-title">Six things to remember.</h2>
+          <p class="lede">If you take nothing else from this page, take these. Each one shifts how architecture is
+            practised &mdash; not what is drawn.</p>
+        </div>
 
-          <text x="20" y="36" font-family="ui-monospace, monospace" font-size="11" fill="#5a6573" letter-spacing="2">ARCHITECTURE: conference-signup &middot; v1.0</text>
+        <div class="grid grid-3">
+          <article class="takeaway">
+            <div class="takeaway-head">
+              <span class="takeaway-icon" aria-hidden="true">
+                <!-- Lucide: code-2 -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </span>
+              <span class="takeaway-num">01</span>
+            </div>
+            <h3>Architecture is now code.</h3>
+            <p>Diagrams are derived views. The CALM document is the source. If they disagree, the JSON wins &mdash; rebuild the picture from the data.</p>
+          </article>
 
-          <!-- Actor: attendee -->
-          <g>
-            <circle cx="78" cy="220" r="26" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <circle cx="78" cy="210" r="7" fill="none" stroke="#4dabf7" stroke-width="1.5"/>
-            <path d="M64 232 q14 -10 28 0" fill="none" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="44" y="270" font-family="-apple-system, system-ui, sans-serif" font-size="13" font-weight="700" fill="#e8ebee">attendee</text>
-            <text x="46" y="288" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">actor</text>
-          </g>
+          <article class="takeaway">
+            <div class="takeaway-head">
+              <span class="takeaway-icon" aria-hidden="true">
+                <!-- Lucide: box -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              </span>
+              <span class="takeaway-num">02</span>
+            </div>
+            <h3>JSON Meta Schema is the heart.</h3>
+            <p>Everything &mdash; patterns, architectures, controls &mdash; validates against one meta-schema. The schema is the only thing you need to learn deeply.</p>
+          </article>
 
-          <!-- Identity Provider -->
-          <g>
-            <rect x="380" y="60" width="170" height="78" rx="5" fill="#1a2028" stroke="#ffd43b" stroke-width="1.5"/>
-            <text x="396" y="84" font-family="ui-monospace, monospace" font-size="10" fill="#ffd43b" letter-spacing="2">NODE / idp</text>
-            <text x="396" y="106" font-family="-apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#e8ebee">Identity Provider</text>
-            <text x="396" y="124" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">OIDC / FAPI 2.0</text>
-          </g>
+          <article class="takeaway">
+            <div class="takeaway-head">
+              <span class="takeaway-icon" aria-hidden="true">
+                <!-- Lucide: layout-grid -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+              </span>
+              <span class="takeaway-num">03</span>
+            </div>
+            <h3>Patterns enable reuse.</h3>
+            <p>One golden pattern, dozens of architectures. The pattern enforces what is non-negotiable; the architecture fills in the rest.</p>
+          </article>
 
-          <!-- Web UI -->
-          <g>
-            <rect x="190" y="180" width="170" height="86" rx="5" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="206" y="204" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">NODE / webclient</text>
-            <text x="206" y="226" font-family="-apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#e8ebee">Conference Web UI</text>
-            <text x="206" y="244" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">id: conference-web</text>
-            <text x="206" y="258" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">port: 443 / TLS 1.3</text>
-          </g>
+          <article class="takeaway">
+            <div class="takeaway-head">
+              <span class="takeaway-icon" aria-hidden="true">
+                <!-- Lucide: check -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span class="takeaway-num">04</span>
+            </div>
+            <h3>Validate in CI/CD.</h3>
+            <p><code>calm validate</code> sits next to your unit tests. A non-conforming architecture fails the build &mdash; not the next architecture review board.</p>
+          </article>
 
-          <!-- API -->
-          <g>
-            <rect x="430" y="180" width="170" height="86" rx="5" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="446" y="204" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">NODE / service</text>
-            <text x="446" y="226" font-family="-apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#e8ebee">Conference API</text>
-            <text x="446" y="244" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">id: conference-api</text>
-            <text x="446" y="258" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">port: 8080 / mTLS</text>
-          </g>
+          <article class="takeaway">
+            <div class="takeaway-head">
+              <span class="takeaway-icon" aria-hidden="true">
+                <!-- Lucide: shield -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </span>
+              <span class="takeaway-num">05</span>
+            </div>
+            <h3>Controls bake in compliance.</h3>
+            <p>Attach DORA, PCI-DSS, SOX, and MAS TRM requirements to the relationships they govern. Evidence is queryable, not forensic.</p>
+          </article>
 
-          <!-- Database -->
-          <g>
-            <rect x="670" y="180" width="170" height="86" rx="5" fill="#1a2028" stroke="#4dabf7" stroke-width="1.5"/>
-            <text x="686" y="204" font-family="ui-monospace, monospace" font-size="10" fill="#4dabf7" letter-spacing="2">NODE / database</text>
-            <text x="686" y="226" font-family="-apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#e8ebee">Attendee Store</text>
-            <text x="686" y="244" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">id: attendee-store</text>
-            <text x="686" y="258" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">port: 5432 / TLS</text>
-          </g>
-
-          <!-- Edges -->
-          <g>
-            <!-- attendee -> web -->
-            <line x1="104" y1="220" x2="190" y2="220" stroke="#4dabf7" stroke-width="1.5" marker-end="url(#arrow-arch)"/>
-            <text x="112" y="210" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">HTTPS</text>
-
-            <!-- web -> api -->
-            <line x1="360" y1="222" x2="430" y2="222" stroke="#4dabf7" stroke-width="1.5" marker-end="url(#arrow-arch)"/>
-            <text x="368" y="212" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">REST</text>
-
-            <!-- api -> db -->
-            <line x1="600" y1="222" x2="670" y2="222" stroke="#4dabf7" stroke-width="1.5" marker-end="url(#arrow-arch)"/>
-            <text x="608" y="212" font-family="ui-monospace, monospace" font-size="10" fill="#aeb6c0">JDBC</text>
-
-            <!-- web -> idp -->
-            <line x1="320" y1="180" x2="430" y2="138" stroke="#ffd43b" stroke-width="1.25" marker-end="url(#arrow-arch-amber)"/>
-            <text x="358" y="148" font-family="ui-monospace, monospace" font-size="10" fill="#ffd43b">OIDC</text>
-
-            <!-- api -> idp -->
-            <line x1="500" y1="180" x2="486" y2="138" stroke="#ffd43b" stroke-width="1.25" marker-end="url(#arrow-arch-amber)"/>
-          </g>
-
-          <!-- Control band -->
-          <rect x="190" y="320" width="650" height="60" rx="4" fill="#1a2028" stroke="#ffd43b" stroke-width="1"/>
-          <text x="206" y="342" font-family="ui-monospace, monospace" font-size="10" fill="#ffd43b" letter-spacing="2">CONTROL PACK / pci-dss-4 + dora-art-6</text>
-          <text x="206" y="362" font-family="ui-monospace, monospace" font-size="11" fill="#aeb6c0">C-001 mTLS east-west &middot; C-002 OIDC + FAPI 2.0 north-south &middot; C-003 encryption at rest</text>
-        </svg>
-        <div id="d4-caption" class="diagram-caption">Fig. 04 &mdash; The conference-signup architecture: actor, IdP, web UI, API, database, with a control pack spanning the deployment.</div>
+          <article class="takeaway">
+            <div class="takeaway-head">
+              <span class="takeaway-icon" aria-hidden="true">
+                <!-- Lucide: globe -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </span>
+              <span class="takeaway-num">06</span>
+            </div>
+            <h3>Visualise with CALM Hub.</h3>
+            <p>Upload to hub.finos.org or self-host the Quarkus service. Diagrams render automatically &mdash; humans never touch a drawing tool again.</p>
+          </article>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <hr class="section-divider">
+    <!-- ============== 08 READING ============== -->
+    <section id="reading" aria-labelledby="reading-title">
+      <div class="container">
+        <div class="section-marker"><span>08 &middot; Further Reading</span></div>
+        <div class="section-head">
+          <h2 id="reading-title">Further reading: where to go next.</h2>
+          <p class="lede">The authoritative sources. Pin these in your bookmarks bar.</p>
+        </div>
 
-  <!-- ============== 06 GLOSSARY ============== -->
-  <section id="glossary" class="section-pad">
+        <ul class="reading">
+          <li>
+            <a href="https://calm.finos.org" rel="noopener noreferrer" target="_blank">
+              CALM — Official site
+              <!-- Lucide: external-link -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            <span class="note">Specification, releases, reference patterns, and CALM Hub access.</span>
+          </li>
+          <li>
+            <a href="https://github.com/finos/architecture-as-code" rel="noopener noreferrer" target="_blank">
+              architecture-as-code — GitHub monorepo
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            <span class="note">Source for the spec, CLI, Hub, reference patterns, and the conference-signup tutorial used above.</span>
+          </li>
+          <li>
+            <a href="https://www.npmjs.com/package/@finos/calm-cli" rel="noopener noreferrer" target="_blank">
+              @finos/calm-cli — npm package
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            <span class="note">The CLI distribution. Install target for <code>npm install -g</code>.</span>
+          </li>
+          <li>
+            <a href="https://www.finos.org/" rel="noopener noreferrer" target="_blank">
+              FINOS — Fintech Open Source Foundation
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            <span class="note">Programme landing page. Other relevant projects: Common Domain Model, Morphir, Symphony, Waltz.</span>
+          </li>
+          <li>
+            <a href="https://www.finos.org/blog" rel="noopener noreferrer" target="_blank">
+              Morgan Stanley — CALM v1.0 announcement
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            <span class="note">Background on the donation and the AasC community. Search the FINOS blog or Morgan Stanley engineering blog for the August 2025 release post.</span>
+          </li>
+        </ul>
+
+        <aside class="callout ok" style="margin-top: var(--space-6);">
+          <span class="callout-label">Verify</span>
+          <div class="callout-body">
+            <p>CALM is evolving rapidly. Where this page cites schema paths, command flags, or version numbers,
+              cross-reference <a href="https://calm.finos.org" rel="noopener">calm.finos.org</a> for the current
+              release before pinning anything into your golden patterns or CI configuration.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
     <div class="container">
-      <div class="section-marker"><span>/ 06 &mdash; Glossary</span></div>
-      <h2 class="section-title">Terms, defined.</h2>
-      <p class="section-lead">
-        A reference list of CALM-adjacent terms. Skim if you are already fluent; bookmark if you are not.
-      </p>
-
-      <ul class="glossary">
-        <li>
-          <div class="gloss-term">Architecture as Code <span class="gloss-abbr">AasC</span></div>
-          <div class="gloss-def">A practice in which architecture artefacts are stored as version-controlled, machine-readable documents alongside the code they describe. CALM is its FINOS-stewarded reference specification.</div>
-        </li>
-        <li>
-          <div class="gloss-term">CALM <span class="gloss-abbr">noun</span></div>
-          <div class="gloss-def">Common Architecture Language Model. A FINOS open-source meta-schema (JSON) for describing systems as nodes, relationships, metadata, controls, and flows. v1.0 released August 2025.</div>
-        </li>
-        <li>
-          <div class="gloss-term">FINOS <span class="gloss-abbr">org</span></div>
-          <div class="gloss-def">The Fintech Open Source Foundation, a Linux Foundation project that stewards open-source software for financial services. Host of CALM and many other capital-markets projects.</div>
-        </li>
-        <li>
-          <div class="gloss-term">AasC Community <span class="gloss-abbr">group</span></div>
-          <div class="gloss-def">The FINOS working group that develops CALM. Originated from Morgan Stanley&rsquo;s internal architecture-as-code effort and open-sourced through FINOS.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Node <span class="gloss-abbr">primitive</span></div>
-          <div class="gloss-def">A typed entity in the model &mdash; service, database, network, actor, deployment target, or other. Identified by a stable <code>unique-id</code>.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Relationship <span class="gloss-abbr">primitive</span></div>
-          <div class="gloss-def">A typed edge between nodes. Sub-types include <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, and <em>interacts</em>.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Metadata <span class="gloss-abbr">primitive</span></div>
-          <div class="gloss-def">Free-form key/value extension data attached to any node or relationship. The intended home for cost-centre, data-classification, and similar enterprise concerns.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Pattern <span class="gloss-abbr">noun</span></div>
-          <div class="gloss-def">A reusable JSON Schema describing a class of valid architectures. The unit of reuse in CALM &mdash; e.g. a golden three-tier web app or event-driven microservice topology.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Architecture <span class="gloss-abbr">instance</span></div>
-          <div class="gloss-def">A concrete JSON document that validates against a pattern and populates it with real ids, names, owners, and runtime detail. The deployable contract.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Control <span class="gloss-abbr">primitive</span></div>
-          <div class="gloss-def">A declarative compliance or security requirement attached to a node or relationship. Examples: mTLS required, encryption at rest mandatory, data residency constraints.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Flow <span class="gloss-abbr">primitive</span></div>
-          <div class="gloss-def">An ordered sequence of node interactions representing a business or data path &mdash; trade settlement, payment authorisation, attendee registration.</div>
-        </li>
-        <li>
-          <div class="gloss-term">JSON Meta Schema <span class="gloss-abbr">artifact</span></div>
-          <div class="gloss-def">The CALM specification itself, expressed as a JSON Schema document. Every CALM pattern and architecture validates against it.</div>
-        </li>
-        <li>
-          <div class="gloss-term">CALM CLI <span class="gloss-abbr">tool</span></div>
-          <div class="gloss-def">The command-line interface (<code>@finos/calm-cli</code> on npm) for generating, validating, templating, and documenting CALM documents.</div>
-        </li>
-        <li>
-          <div class="gloss-term">CALM Hub <span class="gloss-abbr">service</span></div>
-          <div class="gloss-def">The FINOS registry and visualisation server for CALM patterns and architectures. A Quarkus application, self-hostable or FINOS-hosted.</div>
-        </li>
-        <li>
-          <div class="gloss-term">docify <span class="gloss-abbr">command</span></div>
-          <div class="gloss-def">CLI sub-command that renders a CALM architecture into a static documentation website.</div>
-        </li>
-        <li>
-          <div class="gloss-term">generate <span class="gloss-abbr">command</span></div>
-          <div class="gloss-def">CLI sub-command that walks a pattern and produces a stub architecture document ready to be populated.</div>
-        </li>
-        <li>
-          <div class="gloss-term">validate <span class="gloss-abbr">command</span></div>
-          <div class="gloss-def">CLI sub-command that checks an architecture against its pattern and any attached controls. The CI gate.</div>
-        </li>
-        <li>
-          <div class="gloss-term">init-ai <span class="gloss-abbr">command</span></div>
-          <div class="gloss-def">CLI sub-command that drops Claude Code / Copilot / Kiro assistant configuration into a repo, so editors can author CALM documents with model assistance.</div>
-        </li>
-        <li>
-          <div class="gloss-term">Drift detection <span class="gloss-abbr">practice</span></div>
-          <div class="gloss-def">Periodically rendering the live system as CALM and diffing it against the approved CALM document. Surfaces unintended divergence as a PR.</div>
-        </li>
-        <li>
-          <div class="gloss-term">SPIFFE <span class="gloss-abbr">cross-ref</span></div>
-          <div class="gloss-def">Secure Production Identity Framework For Everyone. A workload identity standard frequently referenced from CALM controls when describing east-west authentication.</div>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <hr class="section-divider">
-
-  <!-- ============== 07 TAKEAWAYS ============== -->
-  <section id="takeaways" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 07 &mdash; Takeaways</span></div>
-      <h2 class="section-title">Six things to remember.</h2>
-      <p class="section-lead">
-        If you take nothing else from this page, take these. Each one shifts how architecture is practised &mdash;
-        not what is drawn.
-      </p>
-
-      <div class="grid grid-3">
-        <article class="takeaway">
-          <span class="takeaway-num">/ 01</span>
-          <span class="takeaway-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          </span>
-          <h3>Architecture is now code.</h3>
-          <p>Diagrams are derived views. The CALM document is the source. If they disagree, the JSON wins &mdash; rebuild the picture from the data.</p>
-        </article>
-
-        <article class="takeaway">
-          <span class="takeaway-num">/ 02</span>
-          <span class="takeaway-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-          </span>
-          <h3>JSON Meta Schema is the heart.</h3>
-          <p>Everything &mdash; patterns, architectures, controls &mdash; validates against one meta-schema. The schema is the only thing you need to learn deeply.</p>
-        </article>
-
-        <article class="takeaway">
-          <span class="takeaway-num">/ 03</span>
-          <span class="takeaway-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          </span>
-          <h3>Patterns enable reuse.</h3>
-          <p>One golden pattern, dozens of architectures. The pattern enforces what is non-negotiable; the architecture fills in the rest.</p>
-        </article>
-
-        <article class="takeaway">
-          <span class="takeaway-num">/ 04</span>
-          <span class="takeaway-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </span>
-          <h3>Validate in CI/CD.</h3>
-          <p><code>calm validate</code> sits next to your unit tests. A non-conforming architecture fails the build &mdash; not the next architecture review board.</p>
-        </article>
-
-        <article class="takeaway">
-          <span class="takeaway-num">/ 05</span>
-          <span class="takeaway-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </span>
-          <h3>Controls bake in compliance.</h3>
-          <p>Attach DORA, PCI-DSS, SOX, and MAS TRM requirements to the relationships they govern. Evidence is queryable, not forensic.</p>
-        </article>
-
-        <article class="takeaway">
-          <span class="takeaway-num">/ 06</span>
-          <span class="takeaway-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </span>
-          <h3>Visualise with CALM Hub.</h3>
-          <p>Upload to hub.finos.org or self-host the Quarkus service. Diagrams render automatically &mdash; humans never touch a drawing tool again.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <hr class="section-divider">
-
-  <!-- ============== 08 READING ============== -->
-  <section id="reading" class="section-pad">
-    <div class="container">
-      <div class="section-marker"><span>/ 08 &mdash; Further Reading</span></div>
-      <h2 class="section-title">Where to go next.</h2>
-      <p class="section-lead">
-        The authoritative sources. Pin these in your bookmarks bar.
-      </p>
-
-      <ul class="reading-list">
-        <li>
-          <div>
-            <span class="rl-title">CALM &mdash; Official site</span>
-            <span class="rl-desc">Specification, releases, reference patterns, and CALM Hub access.</span>
-          </div>
-          <a class="rl-link" href="https://calm.finos.org" rel="noopener">calm.finos.org &rarr;</a>
-        </li>
-        <li>
-          <div>
-            <span class="rl-title">architecture-as-code &mdash; GitHub monorepo</span>
-            <span class="rl-desc">Source for the spec, CLI, Hub, reference patterns, and the conference-signup tutorial used above.</span>
-          </div>
-          <a class="rl-link" href="https://github.com/finos/architecture-as-code" rel="noopener">github.com/finos/architecture-as-code &rarr;</a>
-        </li>
-        <li>
-          <div>
-            <span class="rl-title">@finos/calm-cli &mdash; npm package</span>
-            <span class="rl-desc">The CLI distribution. Install target for <code>npm install -g</code>.</span>
-          </div>
-          <a class="rl-link" href="https://www.npmjs.com/package/@finos/calm-cli" rel="noopener">npmjs.com/package/@finos/calm-cli &rarr;</a>
-        </li>
-        <li>
-          <div>
-            <span class="rl-title">FINOS &mdash; Fintech Open Source Foundation</span>
-            <span class="rl-desc">Programme landing page. Other relevant projects: Common Domain Model, Morphir, Symphony, Waltz.</span>
-          </div>
-          <a class="rl-link" href="https://www.finos.org/" rel="noopener">finos.org &rarr;</a>
-        </li>
-        <li>
-          <div>
-            <span class="rl-title">Morgan Stanley &mdash; CALM v1.0 announcement</span>
-            <span class="rl-desc">Background on the donation and the AasC community. Search the FINOS blog or Morgan Stanley engineering blog for the August 2025 release post.</span>
-          </div>
-          <a class="rl-link" href="https://www.finos.org/blog" rel="noopener">finos.org/blog &rarr;</a>
-        </li>
-      </ul>
-
-      <div class="callout ok" style="margin-top: 32px;">
-        <span class="callout-label">Verify</span>
-        <p>
-          CALM is evolving rapidly. Where this page cites schema paths, command flags, or version numbers,
-          cross-reference <a href="https://calm.finos.org" rel="noopener">calm.finos.org</a> for the current
-          release before pinning anything into your golden patterns or CI configuration.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div>
-      CALM Learning Resource
-      <span class="sep">&middot;</span>
-      Single-file HTML
-      <span class="sep">&middot;</span>
-      No external assets
+      <span>Copyright <span id="year"></span> James Buckett — CALM Learning Resource</span>
+      <span>Single-file HTML · No external assets · Built with <code>skill-style-guide</code></span>
     </div>
   </footer>
 
-</main>
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const stored = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initial = stored ?? (prefersDark ? 'dark' : 'light');
+      root.setAttribute('data-theme', initial);
 
-<script>
-  (function () {
-    // Copy buttons on code blocks
-    document.querySelectorAll('.code-copy').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var block = btn.closest('.code-block');
-        if (!block) return;
-        var pre = block.querySelector('pre');
-        if (!pre) return;
-        var text = pre.innerText;
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(text).then(showCopied, showCopied);
-        } else {
-          var ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand('copy'); } catch (e) {}
-          document.body.removeChild(ta);
-          showCopied();
-        }
-        function showCopied() {
-          var prev = btn.textContent;
-          btn.textContent = 'Copied';
-          btn.classList.add('copied');
-          setTimeout(function () {
-            btn.textContent = prev;
-            btn.classList.remove('copied');
-          }, 1400);
-        }
+      const btn = document.getElementById('theme-toggle');
+      btn?.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
       });
-    });
 
-    // Theme toggle: light / dark with localStorage persistence
-    var toggle = document.querySelector('.theme-toggle');
-    if (toggle) {
-      function currentTheme() {
-        return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-      }
-      function updateLabel() {
-        toggle.setAttribute(
-          'aria-label',
-          currentTheme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
-        );
-      }
-      updateLabel();
-      toggle.addEventListener('click', function () {
-        var next = currentTheme() === 'light' ? 'dark' : 'light';
-        if (next === 'light') {
-          document.documentElement.setAttribute('data-theme', 'light');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-        }
-        try { localStorage.setItem('calm-theme', next); } catch (e) {}
-        updateLabel();
-      });
-    }
+      const yr = document.getElementById('year');
+      if (yr) yr.textContent = new Date().getFullYear();
 
-    // Highlight active section in top nav and side TOC on scroll
-    var sections = document.querySelectorAll('main section[id]');
-    var links = document.querySelectorAll('.nav-links a, .toc-list a');
-    if ('IntersectionObserver' in window && sections.length && links.length) {
-      var byId = {};
-      links.forEach(function (a) {
-        var id = a.getAttribute('href').replace('#', '');
-        if (!byId[id]) byId[id] = [];
-        byId[id].push(a);
-      });
-      var obs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) {
-            var id = e.target.getAttribute('id');
-            links.forEach(function (a) { a.classList.remove('active'); });
-            var active = byId[id];
-            if (active) active.forEach(function (a) { a.classList.add('active'); });
+      // Copy-to-clipboard for code blocks
+      document.querySelectorAll('.code-copy').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const block = btn.closest('.code-block');
+          if (!block) return;
+          const pre = block.querySelector('pre');
+          if (!pre) return;
+          const text = pre.innerText;
+          const restore = () => {
+            const prev = btn.textContent;
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = prev === 'Copied' ? 'Copy' : prev;
+              btn.classList.remove('copied');
+            }, 1200);
+          };
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(restore, restore);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            restore();
           }
         });
-      }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-      sections.forEach(function (s) { obs.observe(s); });
-    }
-  })();
-</script>
+      });
+
+      // Highlight active section in the header nav as the user scrolls
+      const navLinks = Array.from(document.querySelectorAll('.nav a[href^="#"]'));
+      if (navLinks.length && 'IntersectionObserver' in window) {
+        const byId = new Map();
+        navLinks.forEach((a) => {
+          const id = a.getAttribute('href').slice(1);
+          if (id) byId.set(id, a);
+        });
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            const id = e.target.getAttribute('id');
+            navLinks.forEach((a) => a.classList.remove('is-active'));
+            const active = byId.get(id);
+            if (active) active.classList.add('is-active');
+          });
+        }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+        byId.forEach((_, id) => {
+          const el = document.getElementById(id);
+          if (el) obs.observe(el);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -3,10 +3,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const url = `file://${path.resolve(path.join(__dirname, 'index.html'))}`;
-const out = path.join(__dirname, 'assets', 'hero.png');
+const projectRoot = path.resolve(__dirname, '..');
+const url = `file://${path.join(projectRoot, 'index.html')}`;
+const out = path.join(projectRoot, 'assets', 'hero.png');
 
-const browser = await chromium.launch({ channel: 'chrome' }).catch(() => chromium.launch());
+const browser = await chromium
+  .launch({ channel: 'chrome' })
+  .catch(() => chromium.launch())
+  .catch(() => chromium.launch({ executablePath: '/snap/bin/chromium' }));
 try {
   const ctx = await browser.newContext({
     viewport: { width: 1440, height: 900 },
