@@ -8,9 +8,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Sans+Mono&display=swap" rel="stylesheet">
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="%232563EB"/><polygon points="12,4 4,8 12,12 20,8" fill="white"/><polyline points="4,12 12,16 20,12" fill="none" stroke="white" stroke-width="1.5"/><polyline points="4,16 12,20 20,16" fill="none" stroke="white" stroke-width="1.5"/></svg>'>
 
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Sans+Mono&display=swap");
 
     /* ------------------------------------------------------------------
        Design tokens
@@ -26,6 +27,7 @@
       --accent: #2563EB;
       --accent-hover: color-mix(in srgb, var(--accent) 88%, black);
       --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+      --on-accent: #FFFFFF;
 
       /* Semantic state colours — used only where content conveys genuine state
          (PASS/FAIL rows, control bands, drift forensic badges). Never used for
@@ -200,7 +202,7 @@
       height: 28px;
       border-radius: 6px;
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
     .brand-mark svg { width: 16px; height: 16px; }
     .brand-text { font-size: 14px; text-transform: uppercase; letter-spacing: 0.14em; }
@@ -618,6 +620,7 @@
       gap: var(--space-5);
     }
     .step {
+      min-width: 0;
       counter-increment: step;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -735,6 +738,15 @@
       font-family: var(--font-mono);
       letter-spacing: 0.02em;
     }
+    @media (max-width: 760px) {
+      .diagram-frame { overflow-x: auto; }
+      .diagram-frame svg { min-width: 720px; }
+      .diagram-frame figcaption {
+        position: sticky;
+        left: 0;
+        max-width: calc(100vw - 96px);
+      }
+    }
 
     /* ------------------------------------------------------------------
        Site footer
@@ -800,7 +812,7 @@
           <span class="dot" aria-hidden="true"></span>
           <span>FINOS / Architecture as Code</span>
           <span aria-hidden="true">·</span>
-          <span>v1.0 / August 2025</span>
+          <span>v1.0 GA Aug 2025 &middot; Latest v1.2</span>
         </div>
         <h1 id="hero-title">The <span class="accent">Common</span><br>Architecture Language Model.</h1>
         <p class="lede">
@@ -810,7 +822,7 @@
         <ul class="badges" aria-label="Project facts">
           <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">License</span><span class="badge-val">Open Source</span></li>
           <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Steward</span><span class="badge-val">FINOS</span></li>
-          <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Release</span><span class="badge-val">v1.0</span></li>
+          <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Release</span><span class="badge-val">v1.2</span></li>
           <li><span class="swatch" aria-hidden="true"></span><span class="badge-key">Paradigm</span><span class="badge-val">Architecture as Code</span></li>
         </ul>
         <ul class="branding" aria-label="Personal links">
@@ -837,13 +849,13 @@
     <section id="tldr" aria-labelledby="tldr-title">
       <div class="container">
         <div class="tldr">
-          <h2 id="tldr-title" class="tldr-label" style="font-size: 14px;">TL;DR — Summary</h2>
+          <h2 id="tldr-title" class="tldr-label">TL;DR — Summary</h2>
           <p class="tldr-lead">CALM turns architecture into a versioned JSON document that travels with the code, validates in CI, and binds compliance controls to the relationships they govern.</p>
           <ul>
-            <li><strong>One artefact.</strong> Pattern, architecture, and controls live in one <code>architecture.calm.json</code>, validated against a shared meta-schema.</li>
-            <li><strong>PR-time enforcement.</strong> <code>calm validate</code> runs next to your unit tests; non-conforming changes fail the build, not the next ARB.</li>
-            <li><strong>Regulator-ready.</strong> Controls map cleanly to DORA, PCI-DSS 4.0, MAS TRM, APRA CPS 234, HKMA SA-2, and OSFI B-13 evidence requirements.</li>
-            <li><strong>Tooling exists today.</strong> Install <code>@finos/calm-cli</code> from npm, render with CALM Hub, and ship a docs site with <code>calm docify</code>.</li>
+            <li><strong>One artefact.</strong> The architecture and its controls live in one <code>architecture.calm.json</code>, validated against its pattern and the shared meta-schema.</li>
+            <li><strong>PR-time enforcement.</strong> <code>calm validate</code> runs next to your unit tests; non-conforming changes fail the build, not the next Architecture Review Board (ARB).</li>
+            <li><strong>Regulator-ready.</strong> Controls map to DORA (EU), PCI DSS v4.0.1, MAS TRM (SG), APRA CPS 234 (AU), HKMA TM-G-1 (HK), and OSFI B-13 (CA) evidence requirements.</li>
+            <li><strong>Tooling exists today.</strong> Install <code>@finos/calm-cli</code> from npm, render with a self-hosted CALM Hub, and ship a docs site with <code>calm docify</code>.</li>
           </ul>
         </div>
       </div>
@@ -866,16 +878,17 @@
           <h3>The status quo: drift by design</h3>
           <p style="margin-top: var(--space-3);">
             Every Tier 1 institution has the same problem. A reference architecture is approved by a board, drawn in Visio,
-            attached to an ADR, and within two sprints it no longer reflects the deployed estate. Reviews happen in meetings
+            attached to an Architecture Decision Record (ADR), and within two sprints it no longer reflects the deployed estate. Reviews happen in meetings
             that produce no machine-checkable output. Compliance evidence becomes a forensic exercise &mdash; piecing
-            together screenshots, change tickets, and runbook entries to satisfy DORA Art. 6, SOX ITGC, or MAS TRM 8.4.
+            together screenshots, change tickets, and runbook entries to satisfy DORA Art. 6, SOX ITGC, or MAS TRM.
           </p>
 
           <h3 class="sub-head">The CALM answer: one document, one truth</h3>
           <p style="margin-top: var(--space-3);">
-            A CALM <code>architecture.calm.json</code> is the contract. It binds intent (the pattern) to instantiation
-            (the deployed system) to control (the compliance posture). It is reviewable in pull requests, validatable in
-            CI, renderable as C4 diagrams, and queryable for drift. The same artefact answers <em>what is the system?</em>,
+            A CALM <code>architecture.calm.json</code> is the contract. It binds three things: intent (the pattern),
+            instantiation (the deployed system), and control (the compliance posture). You review it in a pull request,
+            validate it in CI, render it as C4 (context/container) diagrams, and query it for drift &mdash; one
+            artefact, several views. The same artefact answers <em>what is the system?</em>,
             <em>does it meet our golden pattern?</em>, and <em>which controls apply?</em>.
           </p>
         </div>
@@ -990,7 +1003,8 @@
           <h2 id="concepts-title">The vocabulary of the spec.</h2>
           <p class="lede">
             CALM has a small, deliberate set of primitives. Each is a typed JSON object with a unique identifier and
-            a defined slot in the meta-schema. Learn these seven and you have read the entire spec.
+            a defined slot in the meta-schema. Learn these seven and you can read almost any CALM document &mdash;
+            <em>interfaces</em> and <em>evidence</em>, defined in the glossary, complete the set.
           </p>
         </div>
 
@@ -999,7 +1013,8 @@
             <span class="card-tag">Node</span>
             <h3>Typed system entity</h3>
             <p>A service, database, network, actor, deployment target, or other addressable element. Identified by a
-              stable <code>unique-id</code> within the document.</p>
+              stable <code>unique-id</code>, and exposing <em>interfaces</em> &mdash; typed connection points such as
+              a URL or host/port pair.</p>
             <ul class="field-list">
               <li><span class="k">unique-id</span><span class="v">string</span></li>
               <li><span class="k">node-type</span><span class="v">enum</span></li>
@@ -1012,12 +1027,13 @@
             <span class="card-tag">Relationship</span>
             <h3>Typed edge</h3>
             <p>Connects two or more nodes. The <code>relationship-type</code> determines semantics:
-              <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, or <em>interacts</em>.</p>
+              <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, <em>interacts</em>, or
+              <em>options</em> (a decision point in a pattern).</p>
             <ul class="field-list">
               <li><span class="k">unique-id</span><span class="v">string</span></li>
               <li><span class="k">relationship-type</span><span class="v">object</span></li>
-              <li><span class="k">protocol</span><span class="v">string</span></li>
-              <li><span class="k">authentication</span><span class="v">enum</span></li>
+              <li><span class="k">protocol</span><span class="v">enum</span></li>
+              <li><span class="k">controls</span><span class="v">object</span></li>
             </ul>
           </article>
 
@@ -1061,7 +1077,7 @@
             <span class="card-tag">Control</span>
             <h3>Compliance / security check</h3>
             <p>Declarative requirements attached to nodes or relationships. Examples: &ldquo;all relationships entering
-              PCI scope must use mTLS&rdquo;, &ldquo;every persistent store must declare encryption at rest&rdquo;.</p>
+              PCI scope must use mutual TLS (mTLS)&rdquo;, &ldquo;every persistent store must declare encryption at rest&rdquo;.</p>
             <ul class="field-list">
               <li><span class="k">control-id</span><span class="v">string</span></li>
               <li><span class="k">requirement</span><span class="v">object</span></li>
@@ -1102,7 +1118,7 @@
               <rect x="60" y="120" width="190" height="110" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
               <text x="76" y="146" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / webclient</text>
               <text x="76" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">web-app</text>
-              <text x="76" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: conference-web</text>
+              <text x="76" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: shop-web</text>
               <text x="76" y="212" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">port: 443</text>
             </g>
 
@@ -1111,7 +1127,7 @@
               <rect x="345" y="120" width="190" height="110" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
               <text x="361" y="146" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / service</text>
               <text x="361" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">api</text>
-              <text x="361" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: conference-api</text>
+              <text x="361" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: shop-api</text>
               <text x="361" y="212" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">port: 8080</text>
             </g>
 
@@ -1119,8 +1135,8 @@
             <g>
               <rect x="630" y="120" width="190" height="110" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
               <text x="646" y="146" font-family="ui-monospace, monospace" font-size="10" fill="var(--accent)" letter-spacing="2" font-weight="700">NODE / database</text>
-              <text x="646" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">attendee-db</text>
-              <text x="646" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: attendee-store</text>
+              <text x="646" y="172" font-family="Noto Sans, sans-serif" font-size="15" font-weight="700" fill="currentColor">orders-db</text>
+              <text x="646" y="194" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">id: orders-store</text>
               <text x="646" y="212" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.75">port: 5432</text>
             </g>
 
@@ -1166,8 +1182,9 @@
           <article class="card">
             <span class="card-tag">Compliance</span>
             <h3>Controls become first-class</h3>
-            <p>Attach DORA Art. 6, PCI-DSS 4.0 8.3, and SWIFT CSCF 2.4A directly to the relationships they govern.
-              <em>Evidence is queryable instead of forensic.</em></p>
+            <p>Attach DORA Art. 6, PCI DSS v4.0.1 Req. 4, and SWIFT CSCF 2.4A directly to the connections they
+              constrain. <em>Evidence is a query against the model, not a reconstruction from tickets and
+              screenshots.</em></p>
           </article>
           <article class="card">
             <span class="card-tag">Drift</span>
@@ -1184,16 +1201,15 @@
           <article class="card">
             <span class="card-tag">Reuse</span>
             <h3>Golden patterns enforced at PR time</h3>
-            <p>A new service must validate against the approved pattern before merge. The control plane fails the
-              build &mdash; it does not wait for the next ARB. By the time a system reaches production review,
-              it has already been validated.</p>
+            <p>A new service must validate against the approved pattern before merge. The validation gate fails the
+              build; by the time a system reaches production review, it has already been validated.</p>
           </article>
         </div>
 
         <h3 class="sub-head">The CI/CD checkpoint</h3>
         <p class="prose body-text" style="color: var(--text);">
-          CALM validation drops into the same pipeline as your unit tests and SAST scans. A pull request that breaks
-          the pattern fails at the same gate as a pull request that breaks a test.
+          CALM validation runs on every pull request and blocks the merge on failure &mdash; the same gate that
+          catches a failing unit test or SAST finding.
         </p>
 
         <figure class="diagram-frame" aria-labelledby="d3-caption">
@@ -1255,10 +1271,11 @@
           <span class="callout-label">Regulatory</span>
           <div class="callout-body">
             <p>
-              Controls captured in CALM map cleanly to the evidence requirements of DORA (EU), MAS TRM (Singapore),
-              APRA CPS 234 (Australia), HKMA SA-2 (Hong Kong), and OSFI B-13 (Canada). <strong>The model is the audit
-              trail.</strong> Verify against <a href="https://calm.finos.org">calm.finos.org</a> for the current set
-              of reference control packs.
+              Controls captured in CALM map to the evidence requirements of DORA (EU), MAS TRM (Singapore),
+              APRA CPS 234 (Australia), HKMA SPM TM-G-1 (Hong Kong), and OSFI B-13 (Canada). <strong>The model is the
+              audit trail.</strong> CALM ships the controls <em>mechanism</em> &mdash; requirement and configuration
+              schemas, documented at <a href="https://calm.finos.org">calm.finos.org</a> &mdash; and the regulatory
+              mappings are yours to author.
             </p>
           </div>
         </aside>
@@ -1272,8 +1289,9 @@
         <div class="section-head">
           <h2 id="install-title">Install on Ubuntu 26.04 LTS.</h2>
           <p class="lede">
-            CALM ships as an npm CLI. The only hard prerequisite is Node.js 18+. Java 21 and Maven are needed
-            <em>only</em> if you intend to run CALM Hub locally; the CLI itself does not need them. Start with the
+            CALM ships as an npm CLI. The only hard prerequisite is Node.js 20+ &mdash; the floor documented in the
+            official getting-started guide. Java 21 and Maven are needed <em>only</em> if you build CALM Hub from
+            source; the published Docker image and the CLI itself need neither. Start with the
             preflight check &mdash; if a binary already shows <code>ok</code>, skip the step that installs it.
           </p>
         </div>
@@ -1284,7 +1302,7 @@
             <p>
               Run the loop below once. It probes every binary the rest of this section installs and prints
               <code>ok</code> with a version or <code>missing</code>. Each subsequent step is safe to skip if its
-              binary reports <code>ok</code> at a recent enough version (Node 18+, Java 21+ for CALM Hub).
+              binary reports <code>ok</code> at a recent enough version (Node 20+, Java 21+ for CALM Hub).
             </p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
@@ -1301,10 +1319,10 @@ done</pre>
             <p>Typical output on a fresh Ubuntu 26.04 box:</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">output</span><button class="code-copy" type="button">Copy</button></div>
-<pre><span class="c-ok">  ok       curl    curl 8.5.0 (x86_64-pc-linux-gnu)</span>
-<span class="c-ok">  ok       gpg     gpg (GnuPG) 2.4.4</span>
+<pre><span class="c-ok">  ok       curl    curl 8.18.0 (x86_64-pc-linux-gnu)</span>
+<span class="c-ok">  ok       gpg     gpg (GnuPG) 2.4.8</span>
 <span class="c-out">  missing  make    -</span>
-<span class="c-ok">  ok       git     git version 2.43.0</span>
+<span class="c-ok">  ok       git     git version 2.53.0</span>
 <span class="c-out">  missing  node    -</span>
 <span class="c-out">  missing  npm     -</span>
 <span class="c-out">  missing  calm    -</span>
@@ -1320,7 +1338,7 @@ done</pre>
                   and <code>npm</code>. <strong>Step 05</strong> installs <code>calm</code>. <strong>Step 07</strong>
                   &mdash; optional &mdash; installs <code>java</code> and <code>mvn</code>. If a row already says
                   <code>ok</code>, jump past the step that would install it. Also re-check the version: Node must be
-                  18+ and Java 21+ for CALM Hub; if an older version is on PATH, treat the row as missing and
+                  20+ and Java 21+ for CALM Hub; if an older version is on PATH, treat the row as missing and
                   reinstall.
                 </p>
               </div>
@@ -1330,7 +1348,7 @@ done</pre>
           <li class="step">
             <h3 class="step-title">Update apt and install prerequisites</h3>
             <p>
-              Refresh the package index and install the small set of tools we need to bootstrap Node. Skip this step
+              Refresh the package index and install the small set of tools you need to bootstrap Node. Skip this step
               if the preflight reported <code>ok</code> for <code>curl</code>, <code>gpg</code>, <code>make</code>,
               and <code>git</code> &mdash; <code>ca-certificates</code> is preinstalled on Ubuntu Server images.
             </p>
@@ -1346,10 +1364,11 @@ sudo apt install -y curl ca-certificates gnupg build-essential git</pre>
             <h3 class="step-title">Install Node.js 22 from NodeSource</h3>
             <p>
               Ubuntu 26.04 ships a recent Node in <code>apt</code>, but it tracks Debian&rsquo;s snapshot and can
-              drift from the active LTS. Use the NodeSource repository to pin Node 22.x &mdash; the CLI requires
-              Node 18+, and Node 22 is the current LTS line (Node 20 reached end-of-life in April 2026). Skip this
-              step if the preflight reported <code>ok</code> for both <code>node</code> and <code>npm</code> at
-              <strong>v18 or newer</strong>.
+              drift from the active LTS. Use the NodeSource repository to pin Node 22.x &mdash; the CLI&rsquo;s
+              documented floor is Node 20+, and Node 22 is a maintenance LTS line supported until April 2027
+              (Node 20 reached end-of-life in April 2026; Node 24 is the current active LTS if you prefer it). Skip
+              this step if the preflight reported <code>ok</code> for both <code>node</code> and <code>npm</code> at
+              <strong>v20 or newer</strong>.
             </p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
@@ -1403,19 +1422,22 @@ npm --version
 calm --help
 
 <span class="c-out">Commands:</span>
-<span class="c-out">  generate   Generate an architecture instance from a pattern</span>
-<span class="c-out">  validate   Validate an architecture against a pattern (+ controls)</span>
-<span class="c-out">  template   Render a template using a CALM document as input</span>
-<span class="c-out">  docify     Generate a documentation site from an architecture</span>
-<span class="c-out">  init-ai    Bootstrap AI-assistant config (Claude, Copilot, Kiro)</span></pre>
+<span class="c-out">  generate [options]   Generate an architecture from a CALM pattern file.</span>
+<span class="c-out">  validate [options]   Validate that an architecture conforms to a given CALM pattern.</span>
+<span class="c-out">  diff [options]       Compare two CALM documents (architectures or patterns) and report what changed.</span>
+<span class="c-out">  template [options]   Generate files from a CALM model using a Handlebars template bundle.</span>
+<span class="c-out">  docify [options]     Generate a documentation website off your CALM model.</span>
+<span class="c-out">  init-ai [options]    Augment a git repository with AI assistance for CALM.</span>
+<span class="c-out">  help [command]       display help for command</span></pre>
             </div>
           </li>
 
           <li class="step">
             <h3 class="step-title">Optional — install Java 21 and Maven for CALM Hub</h3>
             <p>
-              Only required if you intend to run the CALM Hub registry/visualisation server locally. It is a Quarkus
-              application and will not start without Java 21+ and Maven 3.8.6+. Skip if the preflight reported
+              Only required if you build the CALM Hub registry/visualisation server from source. It is a Quarkus
+              application needing Java 21+ and Maven 3.8.6+ &mdash; to skip Java entirely, run the published Docker
+              image instead (see the tutorial). Skip this step if the preflight reported
               <code>ok</code> for both <code>java</code> (<strong>21 or newer</strong>) and <code>mvn</code>.
             </p>
             <div class="code-block">
@@ -1444,12 +1466,12 @@ ls -1 *.json
           <span class="callout-label">Troubleshoot</span>
           <div class="callout-body">
             <p><strong><code>EACCES</code> on <code>npm install -g</code>:</strong> use <code>nvm</code> or set an npm
-              user prefix (above). Never <code>sudo npm</code> &mdash; you will fight Debian&rsquo;s RECORD-less system
-              packages every upgrade.</p>
+              user prefix (above). Never <code>sudo npm</code> &mdash; it writes into dpkg-managed paths that npm
+              cannot cleanly track or remove on the next upgrade.</p>
             <p><strong><code>calm: command not found</code>:</strong> run <code>npm config get prefix</code> and confirm
               that <code>&lt;prefix&gt;/bin</code> is on <code>PATH</code>. With a user prefix, add
               <code>export PATH="$HOME/.npm-global/bin:$PATH"</code> to <code>~/.bashrc</code>.</p>
-            <p><strong>Node version mismatch:</strong> the CLI expects Node 18+. If the apt-installed Node is older,
+            <p><strong>Node version mismatch:</strong> the CLI&rsquo;s documented floor is Node 20+. If the apt-installed Node is older,
               uninstall it and use NodeSource as above, or switch to
               <code>nvm install 22 &amp;&amp; nvm use 22</code>.</p>
             <p><strong>Behind a corporate proxy:</strong> set <code>HTTPS_PROXY</code>, <code>HTTP_PROXY</code>, and
@@ -1468,7 +1490,8 @@ ls -1 *.json
           <h2 id="tutorial-title">Conference signup, end to end.</h2>
           <p class="lede">
             Take the official getting-started pattern, instantiate it as an architecture, validate, visualise, and
-            render a documentation site. Five commands, five minutes &mdash; the same loop you will run in CI.
+            render a documentation site. Five steps &mdash; locate, generate, validate, visualise, docify &mdash;
+            the same loop you will run in CI.
           </p>
         </div>
 
@@ -1481,58 +1504,75 @@ ls -1 *.json
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>cd architecture-as-code/calm/getting-started
 ls -1
+<span class="c-out">README.md</span>
 <span class="c-out">conference-signup.pattern.json</span>
-<span class="c-out">README.md</span></pre>
+<span class="c-out">controls</span>
+<span class="c-out">img</span></pre>
             </div>
           </li>
 
           <li class="step">
             <h3 class="step-title">Generate a concrete architecture</h3>
-            <p><code>calm generate</code> walks the pattern and produces a stub architecture document. The output is
-              your starting point &mdash; you then fill in the populated values (real ids, owners, hostnames).</p>
+            <p><code>calm generate</code> walks the pattern and produces a stub architecture document &mdash; five
+              nodes and four relationships for this pattern. The stub contains placeholders
+              (<code>[[ HOST ]]</code>, <code>-1</code>) that you replace with real values.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>calm generate \
   --pattern ./conference-signup.pattern.json \
   --output  ./conference-signup.arch.json
 
-<span class="c-out">[calm] reading pattern: conference-signup.pattern.json</span>
-<span class="c-out">[calm] resolved 3 nodes, 2 relationships</span>
-<span class="c-ok">[calm] wrote: conference-signup.arch.json</span></pre>
+<span class="c-out">info [file-system-document-loader]:     ./conference-signup.pattern.json exists, loading as file...</span>
+<span class="c-out">info [calm-generate]:     Generating a CALM architecture...</span>
+<span class="c-ok">info [calm-generate]:     Successfully generated architecture to [./conference-signup.arch.json]</span></pre>
             </div>
           </li>
 
           <li class="step">
             <h3 class="step-title">Validate</h3>
             <p><code>calm validate</code> checks the architecture against the pattern (schema conformance) and against
-              any attached controls. In CI this is the failing gate.</p>
+              any attached controls. The exit code is non-zero only on errors; add <code>--strict</code> to fail on
+              warnings too &mdash; that combination is the CI gate. Warnings on a fresh stub are expected: they point
+              at the placeholder values you have not filled in yet.</p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
 <pre>calm validate \
   --pattern      ./conference-signup.pattern.json \
   --architecture ./conference-signup.arch.json
 
-<span class="c-out">[calm] schema check     ............ </span><span class="c-ok">OK</span>
-<span class="c-out">[calm] node id uniqueness ........... </span><span class="c-ok">OK</span>
-<span class="c-out">[calm] relationship references ...... </span><span class="c-ok">OK</span>
-<span class="c-out">[calm] controls                ...... </span><span class="c-ok">OK</span>
-<span class="c-ok">[calm] PASS</span></pre>
+<span class="c-out">info [calm-validate]:     Formatting output as json</span>
+<span class="c-out">{</span>
+<span class="c-out">  "jsonSchemaValidationOutputs": [],</span>
+<span class="c-out">  "spectralSchemaValidationOutputs": [</span>
+<span class="c-out">    { "code": "architecture-has-no-placeholder-properties-string",</span>
+<span class="c-warn">      "severity": "warning",</span>
+<span class="c-out">      "message": "String placeholder detected in architecture.",</span>
+<span class="c-out">      "path": "/nodes/conference-website/interfaces/conference-website-url/url", &hellip; },</span>
+<span class="c-out">    &hellip; six more placeholder warnings &hellip;</span>
+<span class="c-out">  ],</span>
+<span class="c-out">  "hasErrors": false,</span>
+<span class="c-warn">  "hasWarnings": true</span>
+<span class="c-out">}</span></pre>
             </div>
           </li>
 
           <li class="step">
             <h3 class="step-title">Visualise with CALM Hub</h3>
             <p>
-              CALM Hub is the FINOS-hosted (and self-hostable) registry and visualisation server. Upload the
-              architecture and you get a rendered topology, control overlay, and shareable URL. Either upload to
-              <a href="https://hub.finos.org" rel="noopener">hub.finos.org</a> or run your own instance with Java 21 + Maven.
+              CALM Hub is the self-hostable registry and visualisation server for CALM documents. Upload the
+              architecture to your instance and you get a rendered topology and a shareable URL. The quickest route
+              is the published Docker image; building from source needs Java 21 + Maven.
             </p>
             <div class="code-block">
               <div class="code-head"><span class="code-lang">bash</span><button class="code-copy" type="button">Copy</button></div>
-<pre><span class="c-cmt"># self-host (after cloning architecture-as-code)</span>
-cd calm-hub
-mvn quarkus:dev
-<span class="c-out">  Quarkus 3.x dev mode listening on http://localhost:8080</span></pre>
+<pre><span class="c-cmt"># quickest: published Docker image (no Java required)</span>
+cd architecture-as-code/calm-hub/deploy
+docker compose up
+
+<span class="c-cmt"># or: dev mode from source, standalone storage (no MongoDB required)</span>
+cd architecture-as-code
+./mvnw -pl calm-hub quarkus:dev -Dcalm.database.mode=standalone
+<span class="c-out">  calm-hub on JVM (powered by Quarkus 3.x) started. Listening on: http://localhost:8080</span></pre>
             </div>
           </li>
 
@@ -1546,64 +1586,65 @@ mvn quarkus:dev
   --architecture ./conference-signup.arch.json \
   --output       ./website
 
-<span class="c-ok">[calm] wrote 12 files to ./website</span>
-<span class="c-out">[calm] open ./website/index.html</span></pre>
+<span class="c-cmt"># writes a static documentation site into ./website</span></pre>
             </div>
           </li>
         </ol>
 
         <h3 class="sub-head">What the architecture document looks like</h3>
         <p class="prose body-text" style="color: var(--text);">
-          Truncated to nodes and relationships for clarity &mdash; the full document also carries metadata, controls,
-          and flow definitions. The <code>$schema</code> URL pins the meta-schema version used to validate.
+          Truncated for clarity &mdash; two nodes and two relationships are elided, and the full document also
+          carries metadata and controls. Note the <em>interfaces</em> on each node: typed connection points whose
+          placeholder values (<code>[[ HOST ]]</code>, <code>-1</code>) you fill in, and exactly what the first-run
+          validate warnings point at. The <code>$schema</code> URL records which pattern the document instantiates.
         </p>
 
         <div class="code-block">
           <div class="code-head"><span class="code-lang">conference-signup.arch.json</span><button class="code-copy" type="button">Copy</button></div>
 <pre>{
-  <span class="c-attr">"$schema"</span>: <span class="c-str">"https://calm.finos.org/release/1.0/meta/calm.json"</span>,
-  <span class="c-attr">"name"</span>:    <span class="c-str">"Conference Signup"</span>,
-  <span class="c-attr">"description"</span>: <span class="c-str">"Reference architecture for the FINOS conference signup example."</span>,
+  <span class="c-attr">"$schema"</span>: <span class="c-str">"https://calm.finos.org/getting-started/conference-signup.pattern.json"</span>,
   <span class="c-attr">"nodes"</span>: [
     {
-      <span class="c-attr">"unique-id"</span>:   <span class="c-str">"conference-web"</span>,
+      <span class="c-attr">"unique-id"</span>:   <span class="c-str">"conference-website"</span>,
       <span class="c-attr">"node-type"</span>:   <span class="c-str">"webclient"</span>,
-      <span class="c-attr">"name"</span>:        <span class="c-str">"Conference Web UI"</span>,
-      <span class="c-attr">"description"</span>: <span class="c-str">"Public-facing web interface for attendee registration."</span>
+      <span class="c-attr">"name"</span>:        <span class="c-str">"Conference Website"</span>,
+      <span class="c-attr">"description"</span>: <span class="c-str">"Website to sign up for a conference"</span>,
+      <span class="c-attr">"interfaces"</span>:  [{ <span class="c-attr">"unique-id"</span>: <span class="c-str">"conference-website-url"</span>, <span class="c-attr">"url"</span>: <span class="c-warn">"[[ URL ]]"</span> }]
     },
     {
-      <span class="c-attr">"unique-id"</span>:   <span class="c-str">"conference-api"</span>,
-      <span class="c-attr">"node-type"</span>:   <span class="c-str">"service"</span>,
-      <span class="c-attr">"name"</span>:        <span class="c-str">"Conference Signup API"</span>,
-      <span class="c-attr">"description"</span>: <span class="c-str">"REST API exposing attendee registration endpoints."</span>
+      <span class="c-attr">"unique-id"</span>:   <span class="c-str">"load-balancer"</span>,
+      <span class="c-attr">"node-type"</span>:   <span class="c-str">"network"</span>,
+      <span class="c-attr">"name"</span>:        <span class="c-str">"Load Balancer"</span>,
+      <span class="c-attr">"interfaces"</span>:  [{ <span class="c-attr">"unique-id"</span>: <span class="c-str">"load-balancer-host-port"</span>, <span class="c-attr">"host"</span>: <span class="c-warn">"[[ HOST ]]"</span>, <span class="c-attr">"port"</span>: <span class="c-warn">-1</span> }]
     },
+    <span class="c-cmt">/* &hellip; "attendees" (service) and "attendees-store" (database), each with image + port interfaces &hellip; */</span>
     {
-      <span class="c-attr">"unique-id"</span>:   <span class="c-str">"attendee-store"</span>,
-      <span class="c-attr">"node-type"</span>:   <span class="c-str">"database"</span>,
-      <span class="c-attr">"name"</span>:        <span class="c-str">"Attendee Store"</span>,
-      <span class="c-attr">"description"</span>: <span class="c-str">"Relational store for attendee records."</span>
+      <span class="c-attr">"unique-id"</span>:   <span class="c-str">"k8s-cluster"</span>,
+      <span class="c-attr">"node-type"</span>:   <span class="c-str">"system"</span>,
+      <span class="c-attr">"name"</span>:        <span class="c-str">"Kubernetes Cluster"</span>,
+      <span class="c-attr">"description"</span>: <span class="c-str">"Kubernetes Cluster with network policy rules enabled"</span>
     }
   ],
   <span class="c-attr">"relationships"</span>: [
     {
-      <span class="c-attr">"unique-id"</span>: <span class="c-str">"web-to-api"</span>,
+      <span class="c-attr">"unique-id"</span>: <span class="c-str">"conference-website-load-balancer"</span>,
+      <span class="c-attr">"protocol"</span>:  <span class="c-str">"HTTPS"</span>,
       <span class="c-attr">"relationship-type"</span>: {
         <span class="c-attr">"connects"</span>: {
-          <span class="c-attr">"source"</span>:      { <span class="c-attr">"node"</span>: <span class="c-str">"conference-web"</span> },
-          <span class="c-attr">"destination"</span>: { <span class="c-attr">"node"</span>: <span class="c-str">"conference-api"</span> }
+          <span class="c-attr">"source"</span>:      { <span class="c-attr">"node"</span>: <span class="c-str">"conference-website"</span> },
+          <span class="c-attr">"destination"</span>: { <span class="c-attr">"node"</span>: <span class="c-str">"load-balancer"</span> }
         }
-      },
-      <span class="c-attr">"protocol"</span>: <span class="c-str">"HTTPS"</span>
+      }
     },
+    <span class="c-cmt">/* &hellip; "load-balancer-attendees" (mTLS) and "attendees-attendees-store" (JDBC) &hellip; */</span>
     {
-      <span class="c-attr">"unique-id"</span>: <span class="c-str">"api-to-db"</span>,
+      <span class="c-attr">"unique-id"</span>: <span class="c-str">"deployed-in-k8s-cluster"</span>,
       <span class="c-attr">"relationship-type"</span>: {
-        <span class="c-attr">"connects"</span>: {
-          <span class="c-attr">"source"</span>:      { <span class="c-attr">"node"</span>: <span class="c-str">"conference-api"</span> },
-          <span class="c-attr">"destination"</span>: { <span class="c-attr">"node"</span>: <span class="c-str">"attendee-store"</span> }
+        <span class="c-attr">"deployed-in"</span>: {
+          <span class="c-attr">"container"</span>: <span class="c-str">"k8s-cluster"</span>,
+          <span class="c-attr">"nodes"</span>: [ <span class="c-str">"load-balancer"</span>, <span class="c-str">"attendees"</span>, <span class="c-str">"attendees-store"</span> ]
         }
-      },
-      <span class="c-attr">"protocol"</span>: <span class="c-str">"JDBC"</span>
+      }
     }
   ]
 }</pre>
@@ -1612,14 +1653,15 @@ mvn quarkus:dev
         <aside class="callout">
           <span class="callout-label">Note</span>
           <div class="callout-body">
-            <p>Exact <code>$schema</code> path and the precise shape of <code>relationship-type</code> may evolve
-              between minor releases. <em>Verify against calm.finos.org</em> for the version pinned to your install.</p>
+            <p>This page pins spec release 1.0; releases 1.1 and 1.2 have shipped since (1.2 is current as of
+              January 2026). Exact <code>$schema</code> paths and field shapes may evolve between releases &mdash;
+              <em>verify against calm.finos.org</em> for the release your toolchain targets.</p>
           </div>
         </aside>
 
-        <h3 class="sub-head">The resulting architecture</h3>
+        <h3 class="sub-head">Beyond the tutorial: controls on a richer topology</h3>
         <figure class="diagram-frame" aria-labelledby="d4-caption">
-          <svg viewBox="0 0 900 420" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Conference signup architecture: attendee actor, identity provider, web UI, API, and database with labelled relationships.">
+          <svg viewBox="0 0 900 420" role="img" xmlns="http://www.w3.org/2000/svg" aria-label="Illustrative architecture: attendee actor, identity provider, web UI, API, and database with labelled relationships and attached controls.">
             <defs>
               <marker id="arrow-arch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
                 <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
@@ -1629,7 +1671,7 @@ mvn quarkus:dev
               </marker>
             </defs>
 
-            <text x="20" y="36" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">ARCHITECTURE: conference-signup &middot; v1.0</text>
+            <text x="20" y="36" font-family="ui-monospace, monospace" font-size="11" fill="currentColor" fill-opacity="0.55" letter-spacing="2">ILLUSTRATIVE ARCHITECTURE &middot; not the tutorial output</text>
 
             <!-- Actor: attendee -->
             <g>
@@ -1694,10 +1736,10 @@ mvn quarkus:dev
 
             <!-- Control band -->
             <rect x="190" y="320" width="650" height="60" rx="6" fill="var(--state-warn-soft)" stroke="var(--state-warn)" stroke-width="1"/>
-            <text x="206" y="342" font-family="ui-monospace, monospace" font-size="10" fill="var(--state-warn)" letter-spacing="2" font-weight="700">CONTROL PACK / pci-dss-4 + dora-art-6</text>
+            <text x="206" y="342" font-family="ui-monospace, monospace" font-size="10" fill="var(--state-warn)" letter-spacing="2" font-weight="700">CONTROLS / illustrative examples</text>
             <text x="206" y="362" font-family="ui-monospace, monospace" font-size="11" fill="currentColor">C-001 mTLS east-west &middot; C-002 OIDC + FAPI 2.0 north-south &middot; C-003 encryption at rest</text>
           </svg>
-          <figcaption id="d4-caption">Fig. 04 — The conference-signup architecture: actor, IdP, web UI, API, database, with a control pack spanning the deployment.</figcaption>
+          <figcaption id="d4-caption">Fig. 04 — An illustrative extension, not the tutorial output: actor, IdP, web UI, API, and database with controls attached. The real conference-signup pattern is simpler — five nodes including a load balancer and a Kubernetes cluster, with a micro-segmentation control.</figcaption>
         </figure>
       </div>
     </section>
@@ -1716,19 +1758,22 @@ mvn quarkus:dev
           <dd>A practice in which architecture artefacts are stored as version-controlled, machine-readable documents alongside the code they describe. CALM is its FINOS-stewarded reference specification.</dd>
 
           <dt>CALM <span class="gloss-abbr">noun</span></dt>
-          <dd>Common Architecture Language Model. A FINOS open-source meta-schema (JSON) for describing systems as nodes, relationships, metadata, controls, and flows. v1.0 released August 2025.</dd>
+          <dd>Common Architecture Language Model. A FINOS open-source meta-schema (JSON) for describing systems as nodes, interfaces, relationships, metadata, controls, and flows. v1.0 released August 2025; release 1.2 is current (January 2026).</dd>
 
           <dt>FINOS <span class="gloss-abbr">org</span></dt>
           <dd>The Fintech Open Source Foundation, a Linux Foundation project that stewards open-source software for financial services. Host of CALM and many other capital-markets projects.</dd>
 
           <dt>AasC Community <span class="gloss-abbr">group</span></dt>
-          <dd>The FINOS working group that develops CALM. Originated from Morgan Stanley&rsquo;s internal architecture-as-code effort and open-sourced through FINOS.</dd>
+          <dd>The FINOS working group that develops CALM, formed within the FINOS DevOps Automation SIG; CALM was onboarded as a FINOS project in December 2024. Morgan Stanley is a lead contributor that open-sourced its internal architecture-as-code tooling through the group.</dd>
 
           <dt>Node <span class="gloss-abbr">primitive</span></dt>
           <dd>A typed entity in the model &mdash; service, database, network, actor, deployment target, or other. Identified by a stable <code>unique-id</code>.</dd>
 
+          <dt>Interface <span class="gloss-abbr">primitive</span></dt>
+          <dd>A typed connection point exposed by a node &mdash; a URL, a host/port pair, a container image. Relationships attach between nodes via their interfaces; the generated tutorial architecture is full of them.</dd>
+
           <dt>Relationship <span class="gloss-abbr">primitive</span></dt>
-          <dd>A typed edge between nodes. Sub-types include <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, and <em>interacts</em>.</dd>
+          <dd>A typed edge between nodes. Sub-types: <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, <em>interacts</em>, and <em>options</em> (pattern decision points).</dd>
 
           <dt>Metadata <span class="gloss-abbr">primitive</span></dt>
           <dd>Free-form key/value extension data attached to any node or relationship. The intended home for cost-centre, data-classification, and similar enterprise concerns.</dd>
@@ -1745,14 +1790,17 @@ mvn quarkus:dev
           <dt>Flow <span class="gloss-abbr">primitive</span></dt>
           <dd>An ordered sequence of node interactions representing a business or data path &mdash; trade settlement, payment authorisation, attendee registration.</dd>
 
-          <dt>JSON Meta Schema <span class="gloss-abbr">artifact</span></dt>
+          <dt>Meta-schema <span class="gloss-abbr">JSON Meta Schema</span></dt>
           <dd>The CALM specification itself, expressed as a JSON Schema document. Every CALM pattern and architecture validates against it.</dd>
 
           <dt>CALM CLI <span class="gloss-abbr">tool</span></dt>
-          <dd>The command-line interface (<code>@finos/calm-cli</code> on npm) for generating, validating, templating, and documenting CALM documents.</dd>
+          <dd>The command-line interface (<code>@finos/calm-cli</code> on npm) for generating, validating, diffing, templating, and documenting CALM documents.</dd>
 
           <dt>CALM Hub <span class="gloss-abbr">service</span></dt>
-          <dd>The FINOS registry and visualisation server for CALM patterns and architectures. A Quarkus application, self-hostable or FINOS-hosted.</dd>
+          <dd>The FINOS-developed registry and visualisation server for CALM patterns and architectures. A Quarkus application; self-host it from the published Docker images or run it from source.</dd>
+
+          <dt>diff <span class="gloss-abbr">command</span></dt>
+          <dd>CLI sub-command that compares two CALM documents (architectures or patterns) and reports what was added, removed, modified, or renamed.</dd>
 
           <dt>docify <span class="gloss-abbr">command</span></dt>
           <dd>CLI sub-command that renders a CALM architecture into a static documentation website.</dd>
@@ -1764,13 +1812,28 @@ mvn quarkus:dev
           <dd>CLI sub-command that checks an architecture against its pattern and any attached controls. The CI gate.</dd>
 
           <dt>init-ai <span class="gloss-abbr">command</span></dt>
-          <dd>CLI sub-command that drops Claude Code / Copilot / Kiro assistant configuration into a repo, so editors can author CALM documents with model assistance.</dd>
+          <dd>CLI sub-command that drops AI-assistant configuration (GitHub Copilot, Claude Code, AWS Kiro, or Codex) into a repo, so editors can author CALM documents with model assistance.</dd>
 
           <dt>Drift detection <span class="gloss-abbr">practice</span></dt>
           <dd>Periodically rendering the live system as CALM and diffing it against the approved CALM document. Surfaces unintended divergence as a PR.</dd>
 
           <dt>SPIFFE <span class="gloss-abbr">cross-ref</span></dt>
           <dd>Secure Production Identity Framework For Everyone. A workload identity standard frequently referenced from CALM controls when describing east-west authentication.</dd>
+
+          <dt>mTLS <span class="gloss-abbr">acronym</span></dt>
+          <dd>Mutual TLS &mdash; both client and server present certificates. The workhorse control for east-west (service-to-service) authentication, often paired with SPIFFE identities.</dd>
+
+          <dt>C4 <span class="gloss-abbr">model</span></dt>
+          <dd>Simon Brown&rsquo;s diagramming model (Context, Container, Component, Code). CALM tooling renders C4-style views from the model &mdash; CALM is the source, C4 is a view.</dd>
+
+          <dt>ARB <span class="gloss-abbr">acronym</span></dt>
+          <dd>Architecture Review Board. The governance meeting where architectures are traditionally approved &mdash; the checkpoint CALM moves into the pull request.</dd>
+
+          <dt>ADR <span class="gloss-abbr">acronym</span></dt>
+          <dd>Architecture Decision Record. A short document capturing one architectural decision and its rationale, usually stored alongside the code.</dd>
+
+          <dt>DORA <span class="gloss-abbr">regulation</span></dt>
+          <dd>The EU Digital Operational Resilience Act (Regulation (EU) 2022/2554). Article 6 requires an ICT risk-management framework &mdash; the evidence anchor cited on this page.</dd>
         </dl>
       </div>
     </section>
@@ -1806,7 +1869,7 @@ mvn quarkus:dev
               </span>
               <span class="takeaway-num">02</span>
             </div>
-            <h3>JSON Meta Schema is the heart.</h3>
+            <h3>The meta-schema is the heart.</h3>
             <p>Everything &mdash; patterns, architectures, controls &mdash; validates against one meta-schema. The schema is the only thing you need to learn deeply.</p>
           </article>
 
@@ -1843,7 +1906,7 @@ mvn quarkus:dev
               <span class="takeaway-num">05</span>
             </div>
             <h3>Controls bake in compliance.</h3>
-            <p>Attach DORA, PCI-DSS, SOX, and MAS TRM requirements to the relationships they govern. Evidence is queryable, not forensic.</p>
+            <p>Attach DORA, PCI DSS, SOX, and MAS TRM requirements to the relationships they govern. Evidence is queryable, not forensic.</p>
           </article>
 
           <article class="takeaway">
@@ -1855,7 +1918,7 @@ mvn quarkus:dev
               <span class="takeaway-num">06</span>
             </div>
             <h3>Visualise with CALM Hub.</h3>
-            <p>Upload to hub.finos.org or self-host the Quarkus service. Diagrams render automatically &mdash; humans never touch a drawing tool again.</p>
+            <p>Self-host the registry from the published Docker image or run the Quarkus service from source. Diagrams render automatically from the model &mdash; no hand-drawn topology to maintain.</p>
           </article>
         </div>
       </div>
@@ -1877,7 +1940,7 @@ mvn quarkus:dev
               <!-- Lucide: external-link -->
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
-            <span class="note">Specification, releases, reference patterns, and CALM Hub access.</span>
+            <span class="note">Specification, releases, reference patterns, and documentation.</span>
           </li>
           <li>
             <a href="https://github.com/finos/architecture-as-code" rel="noopener noreferrer" target="_blank">
@@ -1898,14 +1961,14 @@ mvn quarkus:dev
               FINOS — Fintech Open Source Foundation
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
-            <span class="note">Programme landing page. Other relevant projects: Common Domain Model, Morphir, Symphony, Waltz.</span>
+            <span class="note">Programme landing page. Other relevant projects: Common Domain Model, Morphir, the Symphony BDKs, Waltz.</span>
           </li>
           <li>
-            <a href="https://www.finos.org/blog" rel="noopener noreferrer" target="_blank">
-              Morgan Stanley — CALM v1.0 announcement
+            <a href="https://www.ciodive.com/news/morgan-stanley-open-source-software-development-finos-calm/758339/" rel="noopener noreferrer" target="_blank">
+              CIO Dive — Morgan Stanley open-sources its architecture tooling via FINOS
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
-            <span class="note">Background on the donation and the AasC community. Search the FINOS blog or Morgan Stanley engineering blog for the August 2025 release post.</span>
+            <span class="note">August 2025 coverage of the v1.0 release and Morgan Stanley&rsquo;s contribution to the AasC community.</span>
           </li>
         </ul>
 
