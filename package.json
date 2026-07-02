@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jamesbuckett/calm-architecture-introduction.git"
+    "url": "git+https://github.com/jamesbuckett/calm-tutorial.git"
   },
   "keywords": [
     "calm",
@@ -22,9 +22,9 @@
   "license": "MIT",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/jamesbuckett/calm-architecture-introduction/issues"
+    "url": "https://github.com/jamesbuckett/calm-tutorial/issues"
   },
-  "homepage": "https://github.com/jamesbuckett/calm-architecture-introduction#readme",
+  "homepage": "https://github.com/jamesbuckett/calm-tutorial#readme",
   "dependencies": {
     "playwright": "^1.60.0"
   }
