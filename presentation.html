@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CALM — Common Architecture Language Model · Slides</title>
+  <meta name="description" content="A slide-deck primer on the FINOS Common Architecture Language Model (CALM): concepts, install on Ubuntu, hands-on tutorial, glossary.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Sans+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    /* ------------------------------------------------------------------
+       Design tokens — identical to skill-style-guide's palette and spacing
+       contract. Edit values only by syncing with that skill's template;
+       this deck must stay token-compatible. Swap --accent to one of the
+       curated alternatives; do not introduce a second accent.
+       ------------------------------------------------------------------ */
+    :root {
+      /* Light palette (default) */
+      --bg: #FAFAFA;
+      --surface: #FFFFFF;
+      --text: #0A0A0A;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --border-strong: #D1D5DB;
+
+      /* Pick exactly ONE accent. Alternatives commented for reference. */
+      /* --accent: #2563EB; */  /* restrained blue */
+      --accent: #4F46E5;        /* indigo (default) */
+      /* --accent: #059669; */  /* emerald */
+      /* --accent: #EA580C; */  /* warm orange */
+      --accent-hover: color-mix(in srgb, var(--accent) 88%, black);
+      --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+
+      /* Categorical (data-viz) palette. ROYGBIV for charts, multi-series
+         diagrams, or taxonomy badges only. Do NOT use for CTAs, headings,
+         links, or chrome — the one-accent rule above still applies. */
+      --cat-1: #DC2626;  /* red */
+      --cat-2: #EA580C;  /* orange */
+      --cat-3: #CA8A04;  /* yellow */
+      --cat-4: #16A34A;  /* green */
+      --cat-5: #2563EB;  /* blue */
+      --cat-6: #4F46E5;  /* indigo */
+      --cat-7: #7C3AED;  /* violet */
+
+      /* Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 48px;
+      --space-8: 64px;
+      --space-9: 96px;
+
+      /* Type */
+      --font-sans: "Noto Sans", -apple-system, BlinkMacSystemFont, "Inter", "Geist", "Segoe UI", Roboto, sans-serif;
+      --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      /* Deck type ramp — sized for the fixed 1280x720 design space, which
+         the stage scales as one unit. Do not use viewport-relative units
+         inside slides; they would fight the stage scaling. */
+      --fs-deck-h1: 64px;
+      --fs-deck-h2: 44px;
+      --fs-deck-h3: 30px;
+      --fs-deck-body: 24px;
+      --fs-deck-small: 18px;
+      --fs-deck-mono: 20px;
+      --leading-body: 1.5;
+      --leading-tight: 1.15;
+      --tracking-tight: -0.02em;
+
+      /* Layout */
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.04);
+      --shadow: 0 1px 3px rgba(10, 10, 10, 0.06), 0 1px 2px rgba(10, 10, 10, 0.04);
+      --transition: 180ms ease;
+      --transition-slide: 200ms ease;
+
+      /* 16:9 design space. The engine scales this to fit the viewport. */
+      --deck-w: 1280px;
+      --deck-h: 720px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0B0B0C;
+      --surface: #161618;
+      --text: #F5F5F5;
+      --text-muted: #9CA3AF;
+      --border: #27272A;
+      --border-strong: #3F3F46;
+      --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--bg));
+      /* Categorical palette — lifted for near-black backgrounds. */
+      --cat-1: #F87171;
+      --cat-2: #FB923C;
+      --cat-3: #FACC15;
+      --cat-4: #4ADE80;
+      --cat-5: #60A5FA;
+      --cat-6: #818CF8;
+      --cat-7: #A78BFA;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ------------------------------------------------------------------
+       Reset and base
+       ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden; /* the stage is the viewport; overlays scroll internally */
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-deck-body);
+      line-height: var(--leading-body);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color var(--transition), color var(--transition);
+    }
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+      margin: 0;
+    }
+    p { margin: 0; }
+    code, pre, kbd { font-family: var(--font-mono); font-size: var(--fs-deck-mono); }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    a:hover { color: var(--accent-hover); }
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    /* The stage receives programmatic focus (a keyboard sink when overlays
+       close); it isn't an interactive control, so no ring on it. */
+    .stage:focus-visible { outline: none; }
+
+    /* ------------------------------------------------------------------
+       Deck header — theme toggle + personal branding badges. Fixed chrome,
+       unscaled, hidden in print.
+       ------------------------------------------------------------------ */
+    .deck-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-2) var(--space-5);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: saturate(180%) blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: var(--tracking-tight);
+      color: var(--text);
+    }
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+    }
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background-color var(--transition), border-color var(--transition);
+    }
+    .icon-button:hover { background: var(--surface); border-color: var(--border-strong); }
+    .icon-button svg { width: 18px; height: 18px; }
+    a.icon-button { color: var(--text-muted); }
+    a.icon-button:hover { color: var(--text); }
+    [data-theme="light"] #icon-moon { display: block; }
+    [data-theme="light"] #icon-sun { display: none; }
+    [data-theme="dark"]  #icon-moon { display: none; }
+    [data-theme="dark"]  #icon-sun  { display: block; }
+
+    /* ------------------------------------------------------------------
+       Stage — a fixed 1280x720 canvas centered in the viewport and scaled
+       as one unit, so the deck letterboxes on mismatched windows. The
+       engine sets --deck-scale and --notes-shift from JS on resize.
+       ------------------------------------------------------------------ */
+    .stage {
+      position: fixed;
+      left: 50%;
+      top: calc(50% - var(--notes-shift, 0px));
+      width: var(--deck-w);
+      height: var(--deck-h);
+      transform: translate(-50%, -50%) scale(var(--deck-scale, 1));
+    }
+
+    /* ------------------------------------------------------------------
+       Slides — absolutely stacked; only .is-current is visible. The fade
+       stays at 200ms and dies entirely under prefers-reduced-motion.
+       No entrance animations.
+       ------------------------------------------------------------------ */
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-8);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--transition-slide), visibility 0s 200ms;
+    }
+    .slide.is-current {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity var(--transition-slide);
+    }
+
+    .slide-kicker {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-3);
+    }
+    .slide-title { font-size: var(--fs-deck-h2); margin-bottom: var(--space-6); }
+    .slide-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    /* Bullets — the workhorse. Content rules cap these at 6 per slide.
+       ol.bullets keeps source numbering (use start="N" on continuations). */
+    ul.bullets, ol.bullets {
+      margin: 0;
+      padding-left: var(--space-6);
+    }
+    ul.bullets li, ol.bullets li { padding-left: var(--space-2); }
+    ul.bullets li + li, ol.bullets li + li { margin-top: var(--space-4); }
+    ul.bullets li::marker { color: var(--accent); }
+    ol.bullets li::marker {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 20px;
+    }
+    ul.bullets ul {
+      margin-top: var(--space-3);
+      padding-left: var(--space-5);
+      font-size: var(--fs-deck-small);
+      color: var(--text-muted);
+    }
+    ul.bullets ul li + li { margin-top: var(--space-2); }
+    ul.bullets ul li::marker { color: var(--text-muted); }
+    .slide-body strong { font-weight: 700; }
+    .slide-body code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 var(--space-1);
+      font-size: 20px;
+    }
+    /* Inside <pre> the inline-code pill must not apply — the block carries
+       the chrome, the lines stay bare. */
+    .slide-body pre code {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* Title + closing slides */
+    .slide-title-page, .slide-closing {
+      justify-content: center;
+      align-items: flex-start;
+      gap: var(--space-6);
+    }
+    .slide-title-page h1 { font-size: var(--fs-deck-h1); max-width: 20ch; }
+    .slide-closing h2 { font-size: var(--fs-deck-h1); }
+    .deck-lede {
+      font-size: 28px;
+      line-height: 1.4;
+      color: var(--text-muted);
+      max-width: 44ch;
+    }
+    .deck-meta {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    /* Personal branding row — same pattern as the style guide template. */
+    .branding {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin: 0;
+      list-style: none;
+      padding: 0;
+    }
+    .branding a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 16px;
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .branding a:hover { color: var(--text); border-color: var(--border-strong); }
+    .branding svg { width: 16px; height: 16px; }
+
+    /* Agenda */
+    ol.agenda {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+    ol.agenda.agenda-2col { grid-template-columns: 1fr 1fr; column-gap: var(--space-7); }
+    ol.agenda li {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-4);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: var(--tracking-tight);
+    }
+    ol.agenda .agenda-num {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--accent);
+    }
+
+    /* ------------------------------------------------------------------
+       Deck controls — prev/next, counter, key hints. Fixed chrome,
+       unscaled, hidden in print. Sits above the notes panel when open.
+       ------------------------------------------------------------------ */
+    .deck-controls {
+      position: fixed;
+      right: var(--space-5);
+      bottom: calc(var(--space-5) + var(--notes-h, 0px));
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2);
+      background: color-mix(in srgb, var(--bg) 85%, transparent);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: bottom var(--transition);
+    }
+    .deck-controls .icon-button:disabled {
+      opacity: 0.35;
+      cursor: default;
+      background: transparent;
+      border-color: var(--border);
+    }
+    #slide-counter {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--text-muted);
+      padding-inline: var(--space-2);
+      min-width: 64px;
+      text-align: center;
+    }
+    .key-hint {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      padding-inline: var(--space-2);
+      border-left: 1px solid var(--border);
+    }
+    @media (max-width: 719px) { .key-hint { display: none; } }
+
+    /* ------------------------------------------------------------------
+       Overview grid — toggled with O or Escape. A keyboard-accessible
+       card per slide; Enter jumps, Escape closes.
+       ------------------------------------------------------------------ */
+    .overview {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: var(--bg);
+      overflow-y: auto;
+      padding: var(--space-8) var(--space-6) var(--space-6);
+    }
+    .overview-head {
+      max-width: 1280px;
+      margin: 0 auto var(--space-5);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    .overview-head h2 { font-size: 24px; }
+    .overview-head p { font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); }
+    .overview-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--space-4);
+    }
+    .ov-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      min-height: 96px;
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .ov-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+    .ov-card[aria-current="true"] { border-color: var(--accent); }
+    .ov-card[aria-current="true"] .ov-num { color: var(--accent); }
+    .ov-num { font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); }
+    .ov-title { font-size: 15px; font-weight: 700; line-height: 1.35; letter-spacing: var(--tracking-tight); }
+    body:not(.overview-open) .overview { display: none; }
+    body.overview-open .stage { visibility: hidden; }
+
+    /* ------------------------------------------------------------------
+       Speaker notes — <aside class="notes"> inside each slide, hidden in
+       the deck, mirrored into a readable unscaled bottom panel on N.
+       ------------------------------------------------------------------ */
+    .slide .notes { display: none; }
+    body.notes-open { --notes-h: 24vh; }
+    .notes-panel {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 24vh;
+      z-index: 12;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: var(--space-4) var(--space-6);
+      overflow-y: auto;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    body:not(.notes-open) .notes-panel { display: none; }
+    .notes-panel .notes-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-2);
+    }
+    .notes-panel p { margin: 0; }
+    .notes-panel p + p { margin-top: var(--space-2); }
+    .notes-panel ul { margin: 0; padding-left: var(--space-5); }
+    .notes-panel .notes-empty { color: var(--text-muted); }
+
+    /* ------------------------------------------------------------------
+       Deck-specific slide shapes (tokens only — no new colour values)
+       ------------------------------------------------------------------ */
+    /* Two-column slide */
+    .cols-2 {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-7);
+      align-content: start;
+    }
+    .cols-2 .col h3 {
+      font-size: var(--fs-deck-h3);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Code slide */
+    pre.code-block {
+      flex: 1;
+      min-height: 0;
+      margin: 0;
+      padding: var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      font-size: var(--fs-deck-mono);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow: hidden;
+    }
+    .code-caption {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    /* Lead line above bullets */
+    .slide-lead { color: var(--text-muted); max-width: 62ch; }
+
+    /* Title-slide fact chips */
+    .fact-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+    .fact-chips .chip {
+      display: inline-flex;
+      gap: var(--space-2);
+      padding: var(--space-1) var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+    .fact-chips .chip .k { color: var(--text-muted); }
+
+    /* Concept spec panel — the source cards' field lists */
+    dl.spec {
+      margin: 0;
+      align-self: start;
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: var(--space-3) var(--space-6);
+      padding: var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      font-family: var(--font-mono);
+      font-size: 20px;
+    }
+    dl.spec dt { font-weight: 700; }
+    dl.spec dd { margin: 0; color: var(--text-muted); }
+
+    /* Glossary slides */
+    dl.gloss {
+      margin: 0;
+      display: grid;
+      grid-template-columns: minmax(260px, max-content) 1fr;
+      gap: var(--space-4) var(--space-6);
+      align-content: start;
+    }
+    dl.gloss dt { font-weight: 700; letter-spacing: var(--tracking-tight); }
+    dl.gloss dt .term-tag {
+      display: inline-block;
+      margin-left: var(--space-2);
+      padding: 0 var(--space-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+    dl.gloss dd { margin: 0; color: var(--text-muted); font-size: 21px; }
+
+    /* ------------------------------------------------------------------
+       Print — one slide per page, chrome removed, light palette forced.
+       With notes mode on (press N before printing), notes append below
+       each slide and pages may flow onto a second sheet.
+       ------------------------------------------------------------------ */
+    @page { size: 13.333in 7.5in; margin: 0; }
+    @media print {
+      /* Force the light palette so a dark-toggled deck doesn't print ink-heavy. */
+      :root, [data-theme="dark"] {
+        --bg: #FFFFFF;
+        --surface: #FFFFFF;
+        --text: #0A0A0A;
+        --text-muted: #6B7280;
+        --border: #E5E7EB;
+        --border-strong: #D1D5DB;
+      }
+      body { overflow: visible; }
+      .deck-header, .deck-controls, .overview, .notes-panel { display: none !important; }
+      .stage {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none;
+      }
+      .slide {
+        position: relative;
+        inset: auto;
+        width: var(--deck-w);
+        height: var(--deck-h);
+        margin: 0 auto;
+        opacity: 1 !important;
+        visibility: visible !important;
+        page-break-after: always;
+        break-after: page;
+        overflow: hidden;
+      }
+      .slide:last-child { page-break-after: auto; break-after: auto; }
+      body.notes-open .slide { height: auto; min-height: var(--deck-h); overflow: visible; }
+      body.notes-open .slide .notes {
+        display: block;
+        margin-top: var(--space-5);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: var(--fs-deck-small);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="deck-header">
+    <span class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <!-- Lucide: square -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+      </span>
+      <span class="deck-name">CALM — Architecture as Code</span>
+    </span>
+    <div class="header-links">
+      <a class="icon-button" href="https://github.com/jamesbuckett" rel="noopener noreferrer" target="_blank" aria-label="GitHub" title="GitHub">
+        <!-- Lucide: github -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      </a>
+      <a class="icon-button" href="https://twitter.com/jamesbuckett" rel="noopener noreferrer" target="_blank" aria-label="Twitter / X" title="Twitter / X">
+        <!-- Lucide: twitter (x glyph) -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+      </a>
+      <a class="icon-button" href="https://www.linkedin.com/in/jamesbuckett" rel="noopener noreferrer" target="_blank" aria-label="LinkedIn" title="LinkedIn">
+        <!-- Lucide: linkedin -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+      </a>
+      <button id="theme-toggle" class="icon-button" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <!-- Lucide: moon -->
+        <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <!-- Lucide: sun -->
+        <svg id="icon-sun"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage" tabindex="-1" aria-label="Presentation slides">
+    <!-- SLIDES:BEGIN — replace the placeholder slides below with the deck
+         planned from outline.json. Rules: ids must be slide-1..slide-N in
+         order; every slide keeps its <aside class="notes">; pull CSS for
+         table / code / two-column / divider slides from
+         references/slide-components.md. -->
+
+    <section class="slide slide-title-page" id="slide-1" data-title="Title">
+      <h1>The Common Architecture Language Model.</h1>
+      <p class="deck-lede">CALM is an open-source, JSON-based meta-schema for defining system architectures as code — versioned, validatable, and composable alongside the implementations they describe.</p>
+      <p class="deck-meta">James Buckett &middot; July 2026</p>
+      <p class="fact-chips">
+        <span class="chip"><span class="k">License</span>Open Source</span>
+        <span class="chip"><span class="k">Steward</span>FINOS</span>
+        <span class="chip"><span class="k">Release</span>v1.2</span>
+        <span class="chip"><span class="k">Paradigm</span>Architecture as Code</span>
+      </p>
+      <ul class="branding" aria-label="Personal links">
+        <li><a href="https://github.com/jamesbuckett" rel="noopener noreferrer" target="_blank">
+          <!-- Lucide: github -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          GitHub
+        </a></li>
+        <li><a href="https://twitter.com/jamesbuckett" rel="noopener noreferrer" target="_blank">
+          <!-- Lucide: twitter (x glyph) -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+          Twitter / X
+        </a></li>
+        <li><a href="https://www.linkedin.com/in/jamesbuckett" rel="noopener noreferrer" target="_blank">
+          <!-- Lucide: linkedin -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a></li>
+      </ul>
+      <aside class="notes">
+        <p>Why this topic: architecture artefacts and implementations have drifted apart for three decades. CALM — stewarded by FINOS, release 1.2 current — treats the architecture model as a versioned JSON document that travels with the source. The deck follows the source page in order: summary, concepts, why it matters, install, hands-on tutorial, glossary, takeaways, further reading.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-2" data-title="Agenda">
+      <p class="slide-kicker">Agenda</p>
+      <h2 class="slide-title">What this deck covers</h2>
+      <div class="slide-body">
+        <ol class="agenda agenda-2col">
+          <li><span class="agenda-num">01</span> TL;DR — Summary</li>
+          <li><span class="agenda-num">02</span> Architecture lives where code lives</li>
+          <li><span class="agenda-num">03</span> The vocabulary of the spec</li>
+          <li><span class="agenda-num">04</span> For Tier 1 financial institutions, this is overdue</li>
+          <li><span class="agenda-num">05</span> Install on Ubuntu 26.04 LTS</li>
+          <li><span class="agenda-num">06</span> Conference signup, end to end</li>
+          <li><span class="agenda-num">07</span> Terms, defined</li>
+          <li><span class="agenda-num">08</span> Six things to remember</li>
+          <li><span class="agenda-num">09</span> Further reading: where to go next</li>
+        </ol>
+      </div>
+      <aside class="notes">
+        <p>Nine sections, mirroring the source page in order. The heart of the deck is the concepts section and the hands-on tutorial; the glossary slides are reference material to skim live and read later.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-3" data-title="TL;DR">
+      <p class="slide-kicker">Summary</p>
+      <h2 class="slide-title">TL;DR — Summary</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li><strong>One artefact.</strong> The architecture and its controls live in one <code>architecture.calm.json</code>, validated against its pattern and the shared meta-schema.</li>
+          <li><strong>PR-time enforcement.</strong> <code>calm validate</code> runs next to your unit tests; non-conforming changes fail the build, not the next Architecture Review Board.</li>
+          <li><strong>Regulator-ready.</strong> Controls map to DORA (EU), PCI DSS v4.0.1, MAS TRM (SG), APRA CPS 234 (AU), HKMA TM-G-1 (HK), and OSFI B-13 (CA).</li>
+          <li><strong>Tooling exists today.</strong> Install <code>@finos/calm-cli</code> from npm, render with a self-hosted CALM Hub, ship a docs site with <code>calm docify</code>.</li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>Framing sentence from the source: CALM turns architecture into a versioned JSON document that travels with the code, validates in CI, and binds compliance controls to the relationships they govern.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-4" data-title="Architecture lives with code">
+      <p class="slide-kicker">01 · Introduction</p>
+      <h2 class="slide-title">Architecture lives where code lives.</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <h3>The status quo: drift by design</h3>
+            <ul class="bullets">
+              <li>Approved by a board, drawn in Visio, attached to an ADR — and stale within two sprints</li>
+              <li>Reviews happen in meetings that produce no machine-checkable output</li>
+              <li>Compliance evidence is forensic — screenshots, change tickets, runbooks for DORA Art. 6, SOX ITGC, MAS TRM</li>
+            </ul>
+          </div>
+          <div class="col">
+            <h3>The CALM answer: one document, one truth</h3>
+            <ul class="bullets">
+              <li><code>architecture.calm.json</code> binds intent (pattern), instantiation (deployed system), and control (compliance posture)</li>
+              <li>Review it in a pull request, validate in CI, render as C4 diagrams, query for drift</li>
+              <li>One artefact answers: <em>what is the system? does it meet our golden pattern? which controls apply?</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>For three decades, architecture artefacts have lived in Visio files, Confluence pages, and PowerPoint decks while implementation lived in Git — the two drift apart at every release. CALM closes the gap by treating the model itself as a versioned JSON document that travels with the source. Every Tier 1 institution has the same problem.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-5" data-title="Vocabulary of the spec">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">The vocabulary of the spec.</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li>Seven primitives — each a typed JSON object with a unique identifier and a defined slot in the meta-schema</li>
+          <li><strong>Node · Relationship · Metadata · Pattern · Architecture · Control · Flow</strong> — learn these and you can read almost any CALM document</li>
+          <li><em>Interfaces</em> and <em>evidence</em>, defined in the glossary, complete the set</li>
+          <li><strong>Flow — ordered sequence of interactions:</strong> a business or data path across nodes — register an attendee, settle a trade, process an instant payment — referencing existing nodes and relationships in order</li>
+          <li><strong>A minimal model, visualised:</strong> three nodes, two relationships, one control — renderable as a C4 container diagram or a Mermaid graph; CALM is the source, the diagrams are views</li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>CALM has a small, deliberate set of primitives. Flows stay consistent with the structural model because they only reference nodes and relationships that already exist. The next six slides take the primitives one at a time, with the field list from the source's concept cards.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-6" data-title="Node">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">Node — typed system entity</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <ul class="bullets">
+              <li>A service, database, network, actor, deployment target, or other addressable element</li>
+              <li>Identified by a stable <code>unique-id</code>, and exposing <em>interfaces</em> — typed connection points such as a URL or host/port pair</li>
+            </ul>
+          </div>
+          <dl class="spec">
+            <dt>unique-id</dt><dd>string</dd>
+            <dt>node-type</dt><dd>enum</dd>
+            <dt>name</dt><dd>string</dd>
+            <dt>description</dt><dd>string</dd>
+          </dl>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>Nodes are the vertices of the model. The node-type enum covers service, database, network, actor, deployment target and more; interfaces are where relationships attach.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-7" data-title="Relationship">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">Relationship — typed edge</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <ul class="bullets">
+              <li>Connects two or more nodes</li>
+              <li>The <code>relationship-type</code> determines semantics: <em>connects</em>, <em>deployed-in</em>, <em>composed-of</em>, <em>interacts</em>, or <em>options</em> (a decision point in a pattern)</li>
+            </ul>
+          </div>
+          <dl class="spec">
+            <dt>unique-id</dt><dd>string</dd>
+            <dt>relationship-type</dt><dd>object</dd>
+            <dt>protocol</dt><dd>enum</dd>
+            <dt>controls</dt><dd>object</dd>
+          </dl>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>Relationships are the edges. Note that controls hang off relationships as well as nodes — that is what lets a compliance requirement bind to a specific connection.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-8" data-title="Metadata">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">Metadata — extensible key/value</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <ul class="bullets">
+              <li>The escape hatch — anything that does not fit the core schema lives here as structured key/value pairs</li>
+              <li>Cost centre, data classification, business owner</li>
+            </ul>
+          </div>
+          <dl class="spec">
+            <dt>free-form</dt><dd>object[]</dd>
+            <dt>attached to</dt><dd>any node</dd>
+            <dt>validated by</dt><dd>pattern</dd>
+          </dl>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>Metadata keeps the core schema small: enterprise-specific concerns extend the model without forking the spec, and a pattern can still validate the shape of what teams attach.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-9" data-title="Pattern">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">Pattern — reusable template</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <ul class="bullets">
+              <li>A JSON Schema that describes a class of valid architectures — a golden three-tier web app, an event-driven microservice topology</li>
+              <li><em>Patterns are the unit of reuse</em></li>
+            </ul>
+          </div>
+          <dl class="spec">
+            <dt>$schema</dt><dd>meta/calm</dd>
+            <dt>defines</dt><dd>node + rel types</dd>
+            <dt>enforces</dt><dd>controls</dd>
+          </dl>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>A pattern captures what is non-negotiable about a class of systems. Teams instantiate it; the pattern enforces required node and relationship types and the controls that must be present.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-10" data-title="Architecture">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">Architecture — concrete instantiation</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <ul class="bullets">
+              <li>A specific, validated <em>instance</em> of a pattern</li>
+              <li>The same nodes and relationships, populated with real names, owners, and runtime details</li>
+            </ul>
+          </div>
+          <dl class="spec">
+            <dt>validates against</dt><dd>pattern</dd>
+            <dt>populated by</dt><dd>team</dd>
+            <dt>deployed as</dt><dd>system</dd>
+          </dl>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>Pattern is the class, architecture is the instance. The architecture document is the thing you review in a PR and diff against the live estate.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-11" data-title="Control">
+      <p class="slide-kicker">02 · Core Concepts</p>
+      <h2 class="slide-title">Control — compliance / security check</h2>
+      <div class="slide-body">
+        <div class="cols-2">
+          <div class="col">
+            <ul class="bullets">
+              <li>Declarative requirements attached to nodes or relationships</li>
+              <li>“All relationships entering PCI scope must use mutual TLS (mTLS)” · “every persistent store must declare encryption at rest”</li>
+            </ul>
+          </div>
+          <dl class="spec">
+            <dt>control-id</dt><dd>string</dd>
+            <dt>requirement</dt><dd>object</dd>
+            <dt>evidence</dt><dd>link</dd>
+          </dl>
+        </div>
+      </div>
+      <aside class="notes">
+        <p>Controls are what make CALM interesting to regulated institutions: the requirement lives on the exact node or relationship it governs, and evidence links back from the same place.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-12" data-title="Why it matters">
+      <p class="slide-kicker">03 · Why It Matters</p>
+      <h2 class="slide-title">For Tier 1 financial institutions, this is overdue.</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li><strong>Controls become first-class.</strong> DORA Art. 6, PCI DSS v4.0.1 Req. 4, SWIFT CSCF 2.4A attach to the connections they constrain — evidence is a query, not a reconstruction</li>
+          <li><strong>Reality vs. intent, diffed.</strong> A nightly job renders the live topology as CALM; diff against the approved document → drift PR opened automatically</li>
+          <li><strong>Architecture review = PR review.</strong> The JSON diff, the rendered C4 view, and the controls delta — in the same place reviewers see code</li>
+          <li><strong>Golden patterns enforced at PR time.</strong> A new service must validate against the approved pattern before merge; production review arrives pre-validated</li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>FINOS members did not open-source CALM to make documentation prettier. They open-sourced it because regulators are asking the same questions in five jurisdictions, and there is no scalable way to answer them with PowerPoint. Drift detection introspects the cluster, Terraform state, or cloud APIs.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-13" data-title="CI/CD checkpoint">
+      <p class="slide-kicker">03 · Why It Matters</p>
+      <h2 class="slide-title">The CI/CD checkpoint</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li><code>calm validate</code> runs on every pull request and blocks the merge on failure — the same gate that catches a failing unit test or SAST finding</li>
+          <li>Controls map to the evidence requirements of DORA (EU), MAS TRM (Singapore), APRA CPS 234 (Australia), HKMA SPM TM-G-1 (Hong Kong), and OSFI B-13 (Canada)</li>
+          <li>The model is the audit trail</li>
+          <li>CALM ships the controls <em>mechanism</em> — requirement and configuration schemas, documented at calm.finos.org; the regulatory mappings are yours to author</li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>The point to land: validation is not a separate governance process — it is the same merge gate the rest of the codebase already uses. The five-jurisdiction mapping is the business case for Tier 1 institutions.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-14" data-title="Install 1 · Preflight">
+      <p class="slide-kicker">04 · Installation</p>
+      <h2 class="slide-title">Install on Ubuntu 26.04 LTS (1/4)</h2>
+      <div class="slide-body">
+        <p class="slide-lead">Step 01 — preflight. The only hard prerequisite is Node.js 20+; Java 21 and Maven matter only if you build CALM Hub from source. Skip any step whose binary already reports <code>ok</code>.</p>
+        <pre class="code-block"><code># report which prerequisites are present on this machine
+for cmd in curl gpg make git node npm calm java mvn; do
+  if command -v "$cmd" &gt;/dev/null 2&gt;&amp;1; then
+    ver=$("$cmd" --version 2&gt;/dev/null | head -n1)
+    printf "  ok      %-6s %s\n" "$cmd" "$ver"
+  else
+    printf "  missing %-6s -\n" "$cmd"
+  fi
+done</code></pre>
+        <p class="code-caption">bash · a fresh Ubuntu 26.04 box typically reports curl, gpg, git ok — make, node, npm, calm, java, mvn missing</p>
+      </div>
+      <aside class="notes">
+        <p>Run the loop once; it probes every binary the rest of the section installs. Re-check versions, not just presence: Node must be 20+ and Java 21+ for CALM Hub — an older binary on PATH counts as missing. Step 02 covers curl, gpg, make, git; step 03 node and npm; step 05 calm; step 07 (optional) java and mvn.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-15" data-title="Install 2 · Node 22">
+      <p class="slide-kicker">04 · Installation</p>
+      <h2 class="slide-title">Install on Ubuntu 26.04 LTS (2/4)</h2>
+      <div class="slide-body">
+        <ol class="bullets" start="2">
+          <li><strong>Update apt and install prerequisites</strong> — <code>sudo apt update &amp;&amp; sudo apt install -y curl ca-certificates gnupg build-essential git</code></li>
+          <li><strong>Install Node.js 22 from NodeSource</strong> — apt's Node tracks Debian's snapshot and can drift; pin the LTS line: <code>curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -</code> then <code>sudo apt install -y nodejs</code>
+            <ul>
+              <li>The documented floor is Node 20+ — Node 20 reached end-of-life in April 2026; Node 22 is maintenance LTS until April 2027</li>
+            </ul>
+          </li>
+          <li><strong>Verify Node and npm</strong> — <code>node --version</code> → v22.14.0 · <code>npm --version</code> → 10.9.2</li>
+        </ol>
+      </div>
+      <aside class="notes">
+        <p>ca-certificates is preinstalled on Ubuntu Server images, so step 02 is skippable when preflight reported ok for curl, gpg, make, and git. Node 24 is the current active LTS if you prefer it; 22 is the conservative pin.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-16" data-title="Install 3 · CALM CLI">
+      <p class="slide-kicker">04 · Installation</p>
+      <h2 class="slide-title">Install on Ubuntu 26.04 LTS (3/4)</h2>
+      <div class="slide-body">
+        <ol class="bullets" start="5">
+          <li><strong>Install the CALM CLI globally</strong> — <code>npm install -g @finos/calm-cli</code>; the binary is exposed as <code>calm</code>
+            <ul>
+              <li><code>EACCES</code>? Never <code>sudo npm</code> — install Node via nvm, or set an npm user prefix and add it to <code>PATH</code></li>
+            </ul>
+          </li>
+          <li><strong>Verify the CLI</strong> — <code>calm --version</code> · <code>calm --help</code> lists the commands: generate · validate · diff · template · docify · init-ai</li>
+        </ol>
+      </div>
+      <aside class="notes">
+        <p>The user-prefix recipe: npm config set prefix ~/.npm-global, then add $HOME/.npm-global/bin to PATH. The six sub-commands map to the rest of the deck — generate and validate drive the tutorial, docify renders the docs site, diff powers drift detection, init-ai drops AI-assistant configuration into a repo.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-17" data-title="Install 4 · Optional">
+      <p class="slide-kicker">04 · Installation</p>
+      <h2 class="slide-title">Install on Ubuntu 26.04 LTS (4/4)</h2>
+      <div class="slide-body">
+        <ol class="bullets" start="7">
+          <li><strong>Optional — Java 21 and Maven for CALM Hub</strong> — needed only to build the Hub from source (a Quarkus app: Java 21+, Maven 3.8.6+): <code>sudo apt install -y openjdk-21-jdk maven</code>
+            <ul>
+              <li>The published Docker image needs neither — run it instead (see the tutorial)</li>
+            </ul>
+          </li>
+          <li><strong>Optional — clone the reference repo</strong> — <code>git clone https://github.com/finos/architecture-as-code.git</code>; <code>calm/getting-started</code> carries <code>conference-signup.pattern.json</code></li>
+        </ol>
+      </div>
+      <aside class="notes">
+        <p>The FINOS monorepo carries the spec, reference patterns, and the conference-signup tutorial used in the next section. Verify with java --version and mvn --version after installing.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-18" data-title="Install issues">
+      <p class="slide-kicker">04 · Installation</p>
+      <h2 class="slide-title">Common installation issues</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li><code>EACCES</code> on <code>npm install -g</code> — use nvm or an npm user prefix; never <code>sudo npm</code>, which writes into dpkg-managed paths npm cannot cleanly track</li>
+          <li><code>calm: command not found</code> — run <code>npm config get prefix</code> and confirm <code>&lt;prefix&gt;/bin</code> is on <code>PATH</code>; with a user prefix, export it in <code>~/.bashrc</code></li>
+          <li>Node version mismatch — the documented floor is Node 20+; replace an older apt Node with NodeSource, or <code>nvm install 22 &amp;&amp; nvm use 22</code></li>
+          <li>Behind a corporate proxy — set <code>HTTPS_PROXY</code> / <code>HTTP_PROXY</code> / <code>NO_PROXY</code>, plus <code>npm config set proxy</code> and <code>https-proxy</code></li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>The user-prefix PATH line: export PATH="$HOME/.npm-global/bin:$PATH" in ~/.bashrc. Proxy settings need to exist in the shell before npm install runs, and npm keeps its own proxy config besides the environment variables.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-19" data-title="Tutorial 1–3">
+      <p class="slide-kicker">05 · Hands-On Tutorial</p>
+      <h2 class="slide-title">Conference signup, end to end (1/2)</h2>
+      <div class="slide-body">
+        <p class="slide-lead">Locate → generate → validate → visualise → docify — the same loop you will run in CI.</p>
+        <ol class="bullets">
+          <li><strong>Locate the pattern</strong> — the monorepo's <code>calm/getting-started</code> bundles <code>conference-signup.pattern.json</code>: a JSON Schema describing the shape of a valid architecture</li>
+          <li><strong>Generate a concrete architecture</strong> — <code>calm generate --pattern conference-signup.pattern.json --output conference-signup.arch.json</code> → a stub with five nodes, four relationships, and placeholders (<code>[[ HOST ]]</code>, <code>-1</code>)</li>
+          <li><strong>Validate</strong> — <code>calm validate --pattern … --architecture …</code>; the exit code is non-zero only on errors, <code>--strict</code> fails warnings too — that combination is the CI gate</li>
+        </ol>
+      </div>
+      <aside class="notes">
+        <p>Warnings on a fresh stub are expected — spectral reports architecture-has-no-placeholder-properties-string for each placeholder you have not filled in yet (hasErrors: false, hasWarnings: true). Generate logs: loading the pattern as file, then "Successfully generated architecture".</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-20" data-title="Tutorial 4–5">
+      <p class="slide-kicker">05 · Hands-On Tutorial</p>
+      <h2 class="slide-title">Conference signup, end to end (2/2)</h2>
+      <div class="slide-body">
+        <ol class="bullets" start="4">
+          <li><strong>Visualise with CALM Hub</strong> — the self-hostable registry and visualisation server: upload the architecture and get a rendered topology and a shareable URL. Quickest is the published Docker image: <code>cd calm-hub/deploy &amp;&amp; docker compose up</code>; from source: <code>./mvnw -pl calm-hub quarkus:dev -Dcalm.database.mode=standalone</code> → http://localhost:8080</li>
+          <li><strong>Render a documentation site</strong> — <code>calm docify --architecture conference-signup.arch.json --output ./website</code> — a static site of nodes, relationships, controls, and embedded diagrams, ready for GitHub Pages</li>
+        </ol>
+      </div>
+      <aside class="notes">
+        <p>The Docker route needs no Java at all; building from source needs Java 21 + Maven (install step 07). Standalone storage mode also removes the MongoDB dependency in dev. Startup line: calm-hub on JVM (powered by Quarkus 3.x), listening on localhost:8080.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-21" data-title="Arch doc · nodes">
+      <p class="slide-kicker">05 · Hands-On Tutorial</p>
+      <h2 class="slide-title">What the architecture document looks like (1/2)</h2>
+      <div class="slide-body">
+        <pre class="code-block"><code>{
+  "$schema": "https://calm.finos.org/getting-started/conference-signup.pattern.json",
+  "nodes": [
+    { "unique-id": "conference-website", "node-type": "webclient",
+      "interfaces": [{ "unique-id": "conference-website-url", "url": "[[ URL ]]" }] },
+    { "unique-id": "load-balancer", "node-type": "network",
+      "interfaces": [{ "unique-id": "load-balancer-host-port",
+                       "host": "[[ HOST ]]", "port": -1 }] },
+    /* … "attendees" (service) and "attendees-store" (database) … */
+    { "unique-id": "k8s-cluster", "node-type": "system", "name": "Kubernetes Cluster" }
+  ]
+}</code></pre>
+        <p class="code-caption">conference-signup.arch.json — nodes, condensed · the $schema URL records which pattern the document instantiates</p>
+      </div>
+      <aside class="notes">
+        <p>Note the interfaces on each node: typed connection points whose placeholder values ([[ HOST ]], -1) are exactly what the first-run validate warnings point at. The full document also carries metadata and controls; descriptions and two nodes are elided here.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-22" data-title="Arch doc · relationships">
+      <p class="slide-kicker">05 · Hands-On Tutorial</p>
+      <h2 class="slide-title">What the architecture document looks like (2/2)</h2>
+      <div class="slide-body">
+        <pre class="code-block"><code>{
+  "relationships": [
+    { "unique-id": "conference-website-load-balancer", "protocol": "HTTPS",
+      "relationship-type": { "connects": {
+        "source":      { "node": "conference-website" },
+        "destination": { "node": "load-balancer" } } } },
+    /* … "load-balancer-attendees" (mTLS) and "attendees-attendees-store" (JDBC) … */
+    { "unique-id": "deployed-in-k8s-cluster",
+      "relationship-type": { "deployed-in": { "container": "k8s-cluster",
+        "nodes": [ "load-balancer", "attendees", "attendees-store" ] } } }
+  ]
+}</code></pre>
+        <p class="code-caption">conference-signup.arch.json — relationships · spec 1.0 shown; 1.2 current — verify paths at calm.finos.org</p>
+      </div>
+      <aside class="notes">
+        <p>Two relationship-type shapes on display: connects (with protocol) and deployed-in (a container grouping three nodes). The source page pins spec release 1.0; releases 1.1 and 1.2 have shipped since, and exact $schema paths and field shapes may evolve between releases.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-23" data-title="Glossary 1/5">
+      <p class="slide-kicker">06 · Glossary</p>
+      <h2 class="slide-title">Terms, defined (1/5)</h2>
+      <div class="slide-body">
+        <dl class="gloss">
+          <dt>Architecture as Code <span class="term-tag">AasC</span></dt>
+          <dd>Version-controlled, machine-readable architecture artefacts stored alongside the code</dd>
+          <dt>CALM <span class="term-tag">noun</span></dt>
+          <dd>FINOS open-source JSON meta-schema; v1.0 August 2025, release 1.2 current</dd>
+          <dt>FINOS <span class="term-tag">org</span></dt>
+          <dd>Fintech Open Source Foundation, a Linux Foundation project; hosts CALM</dd>
+          <dt>AasC Community <span class="term-tag">group</span></dt>
+          <dd>FINOS working group developing CALM; Morgan Stanley a lead contributor</dd>
+          <dt>Node <span class="term-tag">primitive</span></dt>
+          <dd>A typed entity — service, database, network, actor — with a stable <code>unique-id</code></dd>
+          <dt>Interface <span class="term-tag">primitive</span></dt>
+          <dd>Typed connection point on a node — a URL, a host/port pair, a container image</dd>
+        </dl>
+      </div>
+      <aside class="notes">
+        <p>Full definitions from the source: AasC — CALM is its FINOS-stewarded reference specification. CALM — describes systems as nodes, interfaces, relationships, metadata, controls, and flows. AasC Community — formed within the FINOS DevOps Automation SIG; CALM onboarded as a FINOS project in December 2024; Morgan Stanley open-sourced its internal architecture-as-code tooling through the group. Interface — relationships attach between nodes via their interfaces.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-24" data-title="Glossary 2/5">
+      <p class="slide-kicker">06 · Glossary</p>
+      <h2 class="slide-title">Terms, defined (2/5)</h2>
+      <div class="slide-body">
+        <dl class="gloss">
+          <dt>Relationship <span class="term-tag">primitive</span></dt>
+          <dd>Typed edge between nodes: connects, deployed-in, composed-of, interacts, options</dd>
+          <dt>Metadata <span class="term-tag">primitive</span></dt>
+          <dd>Free-form key/value extensions — cost centre, data classification, and similar</dd>
+          <dt>Pattern <span class="term-tag">noun</span></dt>
+          <dd>Reusable JSON Schema describing a class of valid architectures; the unit of reuse</dd>
+          <dt>Architecture <span class="term-tag">instance</span></dt>
+          <dd>A concrete document validating against a pattern — the deployable contract</dd>
+          <dt>Control <span class="term-tag">primitive</span></dt>
+          <dd>Declarative compliance or security requirement — mTLS, encryption at rest, residency</dd>
+          <dt>Flow <span class="term-tag">primitive</span></dt>
+          <dd>Ordered node interactions — trade settlement, payment authorisation, registration</dd>
+        </dl>
+      </div>
+      <aside class="notes">
+        <p>Details condensed away: options marks pattern decision points. Metadata is the intended home for enterprise concerns. An architecture is populated with real ids, names, owners, and runtime detail. Controls examples include data residency constraints.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-25" data-title="Glossary 3/5">
+      <p class="slide-kicker">06 · Glossary</p>
+      <h2 class="slide-title">Terms, defined (3/5)</h2>
+      <div class="slide-body">
+        <dl class="gloss">
+          <dt>Meta-schema <span class="term-tag">JSON Meta Schema</span></dt>
+          <dd>The CALM spec itself; every pattern and architecture validates against it</dd>
+          <dt>CALM CLI <span class="term-tag">tool</span></dt>
+          <dd><code>@finos/calm-cli</code> on npm — generate, validate, diff, template, document</dd>
+          <dt>CALM Hub <span class="term-tag">service</span></dt>
+          <dd>FINOS registry and visualisation server; self-host via Docker or from source</dd>
+          <dt>diff <span class="term-tag">command</span></dt>
+          <dd>Compares two CALM documents — added, removed, modified, renamed</dd>
+          <dt>docify <span class="term-tag">command</span></dt>
+          <dd>Renders an architecture into a static documentation website</dd>
+          <dt>generate <span class="term-tag">command</span></dt>
+          <dd>Walks a pattern and produces a stub architecture ready to populate</dd>
+        </dl>
+      </div>
+      <aside class="notes">
+        <p>CALM Hub is a Quarkus application. diff works on architectures or patterns. generate output contains placeholders to replace with real values.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-26" data-title="Glossary 4/5">
+      <p class="slide-kicker">06 · Glossary</p>
+      <h2 class="slide-title">Terms, defined (4/5)</h2>
+      <div class="slide-body">
+        <dl class="gloss">
+          <dt>validate <span class="term-tag">command</span></dt>
+          <dd>Checks an architecture against its pattern and attached controls — the CI gate</dd>
+          <dt>init-ai <span class="term-tag">command</span></dt>
+          <dd>Drops AI-assistant configuration (Copilot, Claude Code, Kiro, Codex) into a repo</dd>
+          <dt>Drift detection <span class="term-tag">practice</span></dt>
+          <dd>Render the live system as CALM, diff against the approved document</dd>
+          <dt>SPIFFE <span class="term-tag">cross-ref</span></dt>
+          <dd>Workload identity standard cited from CALM controls for east-west authentication</dd>
+          <dt>mTLS <span class="term-tag">acronym</span></dt>
+          <dd>Mutual TLS — both sides present certificates; the workhorse east-west control</dd>
+          <dt>C4 <span class="term-tag">model</span></dt>
+          <dd>Simon Brown's Context / Container / Component / Code views — rendered from CALM</dd>
+        </dl>
+      </div>
+      <aside class="notes">
+        <p>init-ai lets editors author CALM documents with model assistance. Drift detection surfaces unintended divergence as a PR. SPIFFE — Secure Production Identity Framework For Everyone — often pairs with mTLS for service-to-service authentication. CALM is the source, C4 is a view.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-27" data-title="Glossary 5/5">
+      <p class="slide-kicker">06 · Glossary</p>
+      <h2 class="slide-title">Terms, defined (5/5)</h2>
+      <div class="slide-body">
+        <dl class="gloss">
+          <dt>ARB <span class="term-tag">acronym</span></dt>
+          <dd>Architecture Review Board — the governance checkpoint CALM moves into the pull request</dd>
+          <dt>ADR <span class="term-tag">acronym</span></dt>
+          <dd>Architecture Decision Record — one decision and its rationale, stored with the code</dd>
+          <dt>DORA <span class="term-tag">regulation</span></dt>
+          <dd>EU Digital Operational Resilience Act (2022/2554); Art. 6 requires an ICT risk-management framework</dd>
+        </dl>
+      </div>
+      <aside class="notes">
+        <p>DORA Article 6 is the evidence anchor cited throughout the source page. Not to be confused with the DevOps Research and Assessment metrics.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-28" data-title="Six things">
+      <p class="slide-kicker">07 · Takeaways</p>
+      <h2 class="slide-title">Six things to remember.</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li><strong>Architecture is now code.</strong> Diagrams are derived views — if they disagree, the JSON wins</li>
+          <li><strong>The meta-schema is the heart.</strong> Patterns, architectures, controls all validate against it</li>
+          <li><strong>Patterns enable reuse.</strong> One golden pattern, dozens of architectures</li>
+          <li><strong>Validate in CI/CD.</strong> <code>calm validate</code> sits next to your unit tests; non-conformance fails the build</li>
+          <li><strong>Controls bake in compliance.</strong> DORA, PCI DSS, SOX, MAS TRM attach to the relationships they govern — evidence queryable, not forensic</li>
+          <li><strong>Visualise with CALM Hub.</strong> Diagrams render from the model — no hand-drawn topology to maintain</li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>Each one shifts how architecture is practised — not what is drawn. The schema is the only thing you need to learn deeply; the pattern enforces what is non-negotiable and the architecture fills in the rest; a non-conforming architecture fails the build, not the next architecture review board.</p>
+      </aside>
+    </section>
+
+    <section class="slide" id="slide-29" data-title="Further reading">
+      <p class="slide-kicker">08 · Further Reading</p>
+      <h2 class="slide-title">Further reading: where to go next.</h2>
+      <div class="slide-body">
+        <ul class="bullets">
+          <li><a href="https://calm.finos.org" rel="noopener noreferrer" target="_blank"><strong>CALM — official site</strong></a> — specification, releases, reference patterns, documentation</li>
+          <li><a href="https://github.com/finos/architecture-as-code" rel="noopener noreferrer" target="_blank"><strong>architecture-as-code — GitHub monorepo</strong></a> — spec, CLI, Hub, patterns, and the conference-signup tutorial</li>
+          <li><a href="https://www.npmjs.com/package/@finos/calm-cli" rel="noopener noreferrer" target="_blank"><strong>@finos/calm-cli — npm</strong></a> — the CLI distribution; target of <code>npm install -g</code></li>
+          <li><a href="https://www.finos.org/" rel="noopener noreferrer" target="_blank"><strong>FINOS</strong></a> — programme landing page; also Common Domain Model, Morphir, Symphony BDKs, Waltz</li>
+          <li><a href="https://www.ciodive.com/news/morgan-stanley-open-source-software-development-finos-calm/758339/" rel="noopener noreferrer" target="_blank"><strong>CIO Dive</strong></a> — Morgan Stanley open-sources its architecture tooling via FINOS (August 2025)</li>
+        </ul>
+        <p class="slide-lead">CALM is evolving rapidly — cross-reference calm.finos.org for the current release before pinning anything into golden patterns or CI configuration.</p>
+      </div>
+      <aside class="notes">
+        <p>Pin these in your bookmarks bar. Where the source page cites schema paths, command flags, or version numbers, verify against calm.finos.org for the release your toolchain targets.</p>
+      </aside>
+    </section>
+
+    <section class="slide slide-closing" id="slide-30" data-title="Closing">
+      <p class="slide-kicker">Thanks</p>
+      <h2>Thank you</h2>
+      <p class="deck-lede">Architecture is now code — the CALM document is the source, and every diagram is a derived view.</p>
+      <ul class="branding" aria-label="Personal links">
+        <li><a href="https://github.com/jamesbuckett" rel="noopener noreferrer" target="_blank">
+          <!-- Lucide: github -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          GitHub
+        </a></li>
+        <li><a href="https://twitter.com/jamesbuckett" rel="noopener noreferrer" target="_blank">
+          <!-- Lucide: twitter (x glyph) -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+          Twitter / X
+        </a></li>
+        <li><a href="https://www.linkedin.com/in/jamesbuckett" rel="noopener noreferrer" target="_blank">
+          <!-- Lucide: linkedin -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a></li>
+      </ul>
+      <aside class="notes">
+        <p>Restate the takeaway: the CALM document is the source; diagrams, docs sites, and compliance evidence are derived views. Point at calm.finos.org and the architecture-as-code monorepo for next steps, and invite questions.</p>
+      </aside>
+    </section>
+
+    <!-- SLIDES:END -->
+  </main>
+
+  <div class="deck-controls">
+    <button id="nav-prev" class="icon-button" type="button" aria-label="Previous slide" aria-keyshortcuts="ArrowLeft" title="Previous slide (Left arrow)">
+      <!-- Lucide: chevron-left -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span id="slide-counter" aria-live="polite">1 / 1</span>
+    <button id="nav-next" class="icon-button" type="button" aria-label="Next slide" aria-keyshortcuts="ArrowRight" title="Next slide (Right arrow)">
+      <!-- Lucide: chevron-right -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <span class="key-hint" aria-hidden="true">O overview &middot; N notes</span>
+  </div>
+
+  <div class="overview" id="overview" role="dialog" aria-modal="true" aria-label="Slide overview">
+    <div class="overview-head">
+      <h2>Overview</h2>
+      <p>Enter jumps to a slide &middot; Esc closes</p>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <aside class="notes-panel" id="notes-panel" role="region" aria-label="Speaker notes" aria-live="polite"></aside>
+
+  <script>
+    (function () {
+      // Theme bootstrap — same pattern as skill-style-guide's template:
+      // stored preference wins, otherwise honour the OS scheme on first visit.
+      const root = document.documentElement;
+      const stored = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', stored ?? (prefersDark ? 'dark' : 'light'));
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+
+      // ---------------------------------------------------------------
+      // Deck engine
+      // ---------------------------------------------------------------
+      const stage = document.getElementById('stage');
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const counter = document.getElementById('slide-counter');
+      const prevBtn = document.getElementById('nav-prev');
+      const nextBtn = document.getElementById('nav-next');
+      const overview = document.getElementById('overview');
+      const overviewGrid = document.getElementById('overview-grid');
+      const notesPanel = document.getElementById('notes-panel');
+      const DESIGN_W = 1280;
+      const DESIGN_H = 720;
+      let current = 0;
+
+      // Scale the 1280x720 stage to fit the viewport (letterboxing on
+      // mismatched aspect ratios) and shift it up when the notes panel is open.
+      function fit() {
+        const notesH = document.body.classList.contains('notes-open')
+          ? notesPanel.getBoundingClientRect().height : 0;
+        const scale = Math.min(window.innerWidth / DESIGN_W, (window.innerHeight - notesH) / DESIGN_H);
+        stage.style.setProperty('--deck-scale', String(scale));
+        stage.style.setProperty('--notes-shift', (notesH / 2) + 'px');
+      }
+
+      function slideLabel(slide, i) {
+        const heading = slide.querySelector('h1, h2, h3');
+        return slide.dataset.title || (heading ? heading.textContent.trim() : 'Slide ' + (i + 1));
+      }
+
+      function goTo(n, opts = {}) {
+        current = Math.max(0, Math.min(slides.length - 1, n));
+        slides.forEach((s, i) => s.classList.toggle('is-current', i === current));
+        counter.textContent = (current + 1) + ' / ' + slides.length;
+        prevBtn.disabled = current === 0;
+        nextBtn.disabled = current === slides.length - 1;
+        if (opts.updateHash !== false) {
+          history.replaceState(null, '', '#/' + slides[current].id);
+        }
+        syncNotes();
+        syncOverview();
+      }
+      const next = () => goTo(current + 1);
+      const prev = () => goTo(current - 1);
+
+      function parseHash(hash) {
+        const m = /^#\/(slide-\d+)$/.exec(hash || '');
+        if (!m) return null;
+        const idx = slides.findIndex((s) => s.id === m[1]);
+        return idx >= 0 ? idx : null;
+      }
+
+      // Overview grid — one keyboard-focusable card per slide.
+      slides.forEach((slide, i) => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'ov-card';
+        const num = document.createElement('span');
+        num.className = 'ov-num';
+        num.textContent = String(i + 1).padStart(2, '0');
+        const title = document.createElement('span');
+        title.className = 'ov-title';
+        title.textContent = slideLabel(slide, i);
+        card.append(num, title);
+        card.addEventListener('click', () => { goTo(i); toggleOverview(false); });
+        overviewGrid.append(card);
+      });
+      const cards = Array.from(overviewGrid.children);
+
+      function syncOverview() {
+        cards.forEach((c, i) => {
+          if (i === current) c.setAttribute('aria-current', 'true');
+          else c.removeAttribute('aria-current');
+        });
+      }
+
+      function toggleOverview(force) {
+        const open = force ?? !document.body.classList.contains('overview-open');
+        document.body.classList.toggle('overview-open', open);
+        if (open) cards[current]?.focus();
+        else stage.focus({ preventScroll: true });
+      }
+
+      function syncNotes() {
+        if (!document.body.classList.contains('notes-open')) return;
+        const notes = slides[current].querySelector('.notes');
+        notesPanel.innerHTML = '<span class="notes-label">Notes &mdash; slide ' + (current + 1) + '</span>'
+          + (notes ? notes.innerHTML : '<p class="notes-empty">No notes for this slide.</p>');
+      }
+
+      function toggleNotes() {
+        document.body.classList.toggle('notes-open');
+        syncNotes();
+        fit();
+      }
+
+      prevBtn.addEventListener('click', prev);
+      nextBtn.addEventListener('click', next);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const key = e.key;
+        if (key === 'Escape' || key === 'o' || key === 'O') {
+          e.preventDefault();
+          toggleOverview();
+          return;
+        }
+        if (document.body.classList.contains('overview-open')) return;
+        // Don't hijack Space/Enter when a button or link has focus.
+        if ((key === ' ' || key === 'Enter') && e.target.closest('button, a, input, select, textarea')) return;
+        switch (key) {
+          case 'ArrowRight':
+          case 'PageDown':
+            e.preventDefault(); next(); break;
+          case ' ':
+            e.preventDefault(); e.shiftKey ? prev() : next(); break;
+          case 'ArrowLeft':
+          case 'PageUp':
+            e.preventDefault(); prev(); break;
+          case 'Home':
+            e.preventDefault(); goTo(0); break;
+          case 'End':
+            e.preventDefault(); goTo(slides.length - 1); break;
+          case 'n':
+          case 'N':
+            toggleNotes(); break;
+        }
+      });
+
+      window.addEventListener('hashchange', () => {
+        const idx = parseHash(location.hash);
+        if (idx !== null) goTo(idx, { updateHash: false });
+      });
+      window.addEventListener('resize', fit);
+
+      fit();
+      goTo(parseHash(location.hash) ?? 0);
+    })();
+  </script>
+</body>
+</html>
