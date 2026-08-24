@@ -28,7 +28,7 @@ python3 -m http.server 8080
 
 ```
 .
-├── CLAUDE.md          # frontend rules + screenshot loop the AI assistant follows
+├── CLAUDE.md          # project rules: single-file constraint, verify loop, accuracy bar
 ├── index.html         # the entire site
 ├── screenshot.mjs     # Playwright capture harness (mobile / tablet / desktop)
 ├── scripts/           # one-shot helpers (e.g. capture-hero.mjs)
