@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "H=\"$HOME/.claude/skills/skill-style-guide/scripts/hook-stop.mjs\"; if [ -f \"$H\" ]; then node \"$H\"; fi",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
