@@ -1,5 +1,6 @@
 # CALM Tutorial
 
+[![validate](https://github.com/jamesbuckett/calm-tutorial/actions/workflows/validate.yml/badge.svg)](https://github.com/jamesbuckett/calm-tutorial/actions/workflows/validate.yml)
 [![License](https://img.shields.io/github/license/jamesbuckett/calm-tutorial)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/jamesbuckett/calm-tutorial?style=social)](https://github.com/jamesbuckett/calm-tutorial/stargazers)
 [![Last commit](https://img.shields.io/github/last-commit/jamesbuckett/calm-tutorial)](https://github.com/jamesbuckett/calm-tutorial/commits)
@@ -28,13 +29,28 @@ python3 -m http.server 8080
 
 ```
 .
+├── .claude/           # Stop hook — blocks "done" until the page validates
+├── .github/           # CI — runs the style-guide validator on push and PR
 ├── CLAUDE.md          # project rules: single-file constraint, verify loop, accuracy bar
 ├── index.html         # the entire site
+├── presentation.html  # 16:9 slide deck generated from index.html
 ├── screenshot.mjs     # Playwright capture harness (mobile / tablet / desktop)
 ├── scripts/           # one-shot helpers (e.g. capture-hero.mjs)
 ├── assets/            # committed images referenced from the README
 └── package.json       # one dependency: playwright
 ```
+
+## Development
+
+```bash
+npm run validate      # style-guide rules on both HTML files
+npm run screenshots   # capture mobile / tablet / desktop into screenshots/
+```
+
+`validate` resolves the checker from a local `skill-style-guide` checkout; set
+`STYLE_GUIDE=/path/to/skill-style-guide` if yours lives somewhere other than
+`~/.claude/skills/skill-style-guide`. CI checks the skill out automatically, so a pull
+request is validated whether or not you have it installed.
 
 ## Contributing
 

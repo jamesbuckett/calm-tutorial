@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "validate": "SG=\"${STYLE_GUIDE:-$HOME/.claude/skills/skill-style-guide}\"; node \"$SG/scripts/validate.mjs\" index.html && node \"$SG/scripts/validate.mjs\" presentation.html",
+    "screenshots": "node screenshot.mjs ./index.html",
+    "test": "npm run validate"
   },
   "repository": {
     "type": "git",

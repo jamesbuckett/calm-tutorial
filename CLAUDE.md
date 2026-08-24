@@ -16,10 +16,12 @@ blue accent already in `index.html`.
 
 ## Verify before reporting done
 
-1. `node screenshot.mjs ./index.html` — writes `mobile.png`, `tablet.png`, `desktop.png`
-   to `screenshots/`.
-2. Look at all three. Mobile is a first-class deliverable; never skip that viewport.
-3. A `Stop` hook blocks completion until the validator is clean and those three files
+1. `npm run validate` — static rules on `index.html` and `presentation.html`. CI runs
+   the same check on every push and pull request.
+2. `npm run screenshots` — writes `mobile.png`, `tablet.png`, `desktop.png` to
+   `screenshots/`.
+3. Look at all three. Mobile is a first-class deliverable; never skip that viewport.
+4. A `Stop` hook blocks completion until the validator is clean and those three files
    exist. Fix the page or the harness — do not work around it.
 
 ## Content accuracy

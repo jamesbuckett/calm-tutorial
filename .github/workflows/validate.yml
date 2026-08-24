@@ -1,0 +1,38 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+
+      # The validator lives with skill-style-guide rather than being vendored
+      # here, so CI always checks against the current rules.
+      - name: Check out skill-style-guide
+        uses: actions/checkout@v4
+        with:
+          repository: jamesbuckett/skill-style-guide
+          path: .style-guide
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No `npm ci` step: validate.mjs imports only node builtins. The single
+      # dependency (playwright) is needed for screenshots, which stay out of
+      # CI — a runner can capture PNGs but cannot look at them, and looking is
+      # the point. The Stop hook in .claude/settings.json gates that locally.
+      - name: Validate index.html
+        run: node .style-guide/scripts/validate.mjs index.html
+
+      - name: Validate presentation.html
+        run: node .style-guide/scripts/validate.mjs presentation.html
